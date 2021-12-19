@@ -1,0 +1,14 @@
+seed = 0
+
+[data]
+dset_id = 54 # id of openml dataset
+task = 'multiclass' # can be binclass, multiclass, regression
+cat_policy = 'indices'
+
+[fit]
+logging_level = 'Verbose'
+
+[model]
+iterations = 2000
+task_type = 'CPU'
+thread_count = 10

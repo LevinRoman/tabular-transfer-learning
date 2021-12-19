@@ -1,0 +1,11 @@
+{
+    "name": "adult___0",
+    "basename": "adult",
+    "split": 0,
+    "task_type": "binclass",
+    "n_num_features": 6,
+    "n_cat_features": 8,
+    "train_size": 26048,
+    "val_size": 6513,
+    "test_size": 16281
+}
