@@ -112,8 +112,16 @@ class RowColTransformer(nn.Module):
                 ]))
 
     def forward(self, x, x_cont=None, mask = None):
-        if x_cont is not None:
+        assert not ((x is None) and (x_cont is None)), 'categorical and numerical x cannot both be None'
+
+        if x is None:
+            x = x_cont
+        elif x_cont is None:
+            pass
+        else:
             x = torch.cat((x,x_cont),dim=1)
+
+
 
         _, n, _ = x.shape
         if self.style == 'colrow':
@@ -147,8 +155,15 @@ class Transformer(nn.Module):
             ]))
 
     def forward(self, x, x_cont=None):
-        if x_cont is not None:
+        assert not ((x is None) and (x_cont is None)), 'categorical and numerical x cannot both be None'
+
+        if x is None:
+            x = x_cont
+        elif x_cont is None:
+            pass
+        else:
             x = torch.cat((x,x_cont),dim=1)
+
         for attn, ff in self.layers:
             x = attn(x)
             x = ff(x)
@@ -211,7 +226,6 @@ class sep_MLP(nn.Module):
         return y_pred
 
 
-
 class SAINT(nn.Module):
     def __init__(
         self,
@@ -236,26 +250,36 @@ class SAINT(nn.Module):
         use_cls = True,
         ):
         super().__init__()
-        assert all(map(lambda n: n > 0, categories)), 'number of each category must be positive'
+        # assert all(map(lambda n: n > 0, categories)), 'number of each category must be positive'
+        self.categories = categories
 
-        # categories related calculations
-        if use_cls:
-            # insert column for cls token
-            categories.insert(0, 1)
-        self.num_categories = len(categories)
-        self.num_unique_categories = sum(categories)
+        if self.categories is None:
+            if use_cls:
+                self.categories = [1] #for cls
+        else:
+            if use_cls:
+                # insert column for cls token
+                self.categories.insert(0, 1)
 
-        # create category embeddings table
-        self.num_special_tokens = num_special_tokens
-        self.total_tokens = self.num_unique_categories + num_special_tokens
+        if self.categories is not None:
+            # categories related calculations
+            self.num_categories = len(self.categories)
+            self.num_unique_categories = sum(self.categories)
 
-        # for automatically offsetting unique category ids to the correct position in the categories embedding table
-        # for each column outpus # of unique tokens in all prevuous columns (how much we want to offset values)
-        categories_offset = F.pad(torch.tensor(list(categories)), (1, 0), value = num_special_tokens)
-        categories_offset = categories_offset.cumsum(dim = -1)[:-1]
+            # create category embeddings table
+            self.num_special_tokens = num_special_tokens
+            self.total_tokens = self.num_unique_categories + num_special_tokens
 
-        # why do we want to register it?
-        self.register_buffer('categories_offset', categories_offset)
+            # for automatically offsetting unique category ids to the correct position in the categories embedding table
+            # for each column outpus # of unique tokens in all prevuous columns (how much we want to offset values)
+            categories_offset = F.pad(torch.tensor(list(self.categories)), (1, 0), value = num_special_tokens)
+            categories_offset = categories_offset.cumsum(dim = -1)[:-1]
+
+            # why do we want to register it?
+            self.register_buffer('categories_offset', categories_offset)
+        else:
+            self.num_categories = 0
+            self.total_tokens = 0
 
         # Batch Normalization Layer for continuous features
         self.norm = nn.LayerNorm(num_continuous)
@@ -339,7 +363,7 @@ class SAINT(nn.Module):
             self.mlp2 = simple_MLP([dim ,(self.num_continuous), 1])
 
         else:
-            self.mlp1 = sep_MLP(dim,self.num_categories,categories)
+            self.mlp1 = sep_MLP(dim,self.num_categories,self.categories)
             self.mlp2 = sep_MLP(dim,self.num_continuous,np.ones(self.num_continuous).astype(int))
 
 
@@ -364,13 +388,15 @@ class SAINT(nn.Module):
         device = x_cont.device
         # moving each value of each column by sum of unique counts in prev columns (since we use the same embedding layer for
         #  all cat features, their values should not intersect)
+        if self.categories is not None:
+            x_categ = x_categ + self.categories_offset.type_as(x_categ)
+            # embedding layer
 
-        x_categ = x_categ + self.categories_offset.type_as(x_categ)
-        # embedding layer
+            x_categ_enc = self.embeds(x_categ)
+            _, n3 = x_categ.shape
 
-        x_categ_enc = self.embeds(x_categ)
         n1,n2 = x_cont.shape
-        _, n3 = x_categ.shape
+
         # encoding continuous variables, for each cont variable use its own MLP
         if self.cont_embeddings == 'MLP':
             x_cont_enc = torch.empty(n1,n2, self.dim)
@@ -381,15 +407,22 @@ class SAINT(nn.Module):
 
 
         x_cont_enc = x_cont_enc.to(device)
+
         # offset cat_mask, each column by 2 (since we need different embeddings for missing values in different columns)
-        cat_mask_temp = cat_mask + self.cat_mask_offset.type_as(cat_mask)
+        if self.categories is not None:
+            cat_mask_temp = cat_mask + self.cat_mask_offset.type_as(cat_mask)
         con_mask_temp = con_mask + self.con_mask_offset.type_as(con_mask)
 
         # embed missing values as well
-        cat_mask_temp = self.mask_embeds_cat(cat_mask_temp)
+        if self.categories is not None:
+            cat_mask_temp = self.mask_embeds_cat(cat_mask_temp)
         con_mask_temp = self.mask_embeds_cont(con_mask_temp)
         # replace embeddings for missing values with the right embeddings
-        x_categ_enc[cat_mask == 0] = cat_mask_temp[cat_mask == 0]
+        if self.categories is not None:
+            x_categ_enc[cat_mask == 0] = cat_mask_temp[cat_mask == 0]
+        else:
+            x_categ = None
+            x_categ_enc = None
         x_cont_enc[con_mask == 0] = con_mask_temp[con_mask == 0]
 
         return x_categ, x_categ_enc, x_cont_enc
@@ -397,12 +430,12 @@ class SAINT(nn.Module):
 
     def forward(self, x_categ, x_cont, cat_mask, con_mask):
 
-
         if self.use_cls:
-            x_categ = torch.cat((torch.zeros(x_categ.shape[0],1).to(x_categ.get_device()), x_categ), dim = 1).long()
-            cat_mask = torch.cat((torch.ones(cat_mask.shape[0],1).to(cat_mask.get_device()), cat_mask), dim = 1).long()
+            x_categ = torch.cat((torch.zeros(x_categ.shape[0],1).to(x_categ.device), x_categ), dim = 1).long()
+            cat_mask = torch.cat((torch.ones(cat_mask.shape[0],1).to(cat_mask.device), cat_mask), dim = 1).long()
 
         _ , x_categ_enc, x_cont_enc = self.embed_data_mask(x_categ, x_cont, cat_mask, con_mask)
+
         reps = self.transformer(x_categ_enc, x_cont_enc)
         y_reps = reps[:,0,:]
 
@@ -431,7 +464,24 @@ if __name__ == "__main__":
     timer.run()
 
     # laod data (Numerical features, Categorical features, labels, and dictionary with info for the data)
-    N, C, y, info = lib.data_prep_openml(ds_id = dset_id, seed = args['seed'], task = args['data']['task'], datasplit=[.65, .15, .2])
+    # N, C, y, info = lib.data_prep_openml(ds_id = dset_id, seed = args['seed'], task = args['data']['task'], datasplit=[.65, .15, .2])
+    #####################################################################################
+    # TRANSFER#
+    #####################################################################################
+    N, C, y, info, full_cat_data_for_encoder = lib.data_prep_openml_transfer(ds_id=dset_id,
+                                                                             seed=args['seed'],
+                                                                             task=args['data']['task'],
+                                                                             stage=args['transfer']['stage'],
+                                                                             datasplit=[.65, .15, .2],
+                                                                             pretrain_proportion=args['transfer'][
+                                                                                 'pretrain_proportion'],
+                                                                             downstream_train_data_limit=
+                                                                             args['transfer'][
+                                                                                 'downstream_train_data_fraction'])
+    #####################################################################################
+    # TRANSFER#
+    #####################################################################################
+
     D = lib.Dataset(N, C, y, info)
 
     X = D.build_X(
@@ -500,7 +550,7 @@ if __name__ == "__main__":
     print('Loss fn is {}'.format(loss_fn))
 
     model = SAINT(
-        categories = lib.get_categories(X_cat),
+        categories = lib.get_categories_full_cat_data(full_cat_data_for_encoder),#lib.get_categories(X_cat),
         num_continuous = X_num['train'].shape[1],
         dim = args['model']['embed_dim'],
         dim_out = 1,
@@ -515,6 +565,41 @@ if __name__ == "__main__":
         y_dim = D.info['n_classes'] if D.is_multiclass else 1,
         use_cls = args['model']['use_cls']
     ).to(device)
+
+
+    #####################################################################################
+    #TRANSFER#
+    #####################################################################################
+    if ('downstream' in args['transfer']['stage']) and (args['transfer']['load_checkpoint']):
+        print('Loading checkpoint, doing transfer learning')
+        pretrain_checkpoint = torch.load(args['transfer']['checkpoint_path'])
+        # try:
+            #FAILS HERE CURRENTLY BECAUSE OF KEYERROR LOADING PRETRAINED MODEL
+            #NEED DIFFERENT LOAD STATE DICT
+        pretrained_feature_extractor_dict = {k: v for k, v in pretrain_checkpoint['model'].items() if 'mlpfory' not in k}
+        missing_keys, unexpected_keys = model.load_state_dict(pretrained_feature_extractor_dict, strict = False)
+        print('\n Loaded \n Missing keys:{}\n Unexpected keys:{}'.format(missing_keys, unexpected_keys))
+        # except:
+        #     model.load_state_dict(lib.remove_parallel(pretrain_checkpoint['model']))
+
+        #Freeze feature extractor
+        if args['transfer']['freeze_feature_extractor']:
+            for name, param in model.named_parameters():
+                print(name, param.shape)
+                if not any(x in name for x in args['transfer']['layers_to_fine_tune']):
+                # if 'head' not in name:
+                    param.requires_grad = False
+                else:
+                    print('\n Unfrozen param {}\n'.format(name))
+    else:
+        print('No transfer learning')
+    #####################################################################################
+    # TRANSFER#
+    #####################################################################################
+    for name, param in model.named_parameters():
+        print(name, param.shape)
+        if param.requires_grad:
+            print('Trainable', name, param.shape)
 
 
     if torch.cuda.device_count() > 1:  # type: ignore[code]
@@ -571,10 +656,18 @@ if __name__ == "__main__":
         for part in parts:
             predictions[part] = torch.tensor([])
             for batch_idx in lib.IndexLoader(D.size(part), eval_batch_size, False, device):
-                X_num_batch = X_num[part][batch_idx].float()
-                X_cat_batch = X_cat[part][batch_idx]
-                X_num_mask_batch = num_nan_masks[part][batch_idx]
-                X_cat_mask_batch = cat_nan_masks[part][batch_idx]
+                # X_num_batch = None if X_num is None else X_num[part][batch_idx].float()
+                # X_cat_batch = None if X_cat is None else X_cat[part][batch_idx]
+                # X_num_mask_batch = None if num_nan_masks is None else num_nan_masks[part][batch_idx]
+                # X_cat_mask_batch = None if cat_nan_masks is None else cat_nan_masks[part][batch_idx]
+
+                X_num_batch = torch.empty(len(batch_idx), 0, device=device) if X_num is None else X_num[part][batch_idx].float()
+                X_cat_batch = torch.empty(len(batch_idx), 0, device=device) if X_cat is None else X_cat[part][batch_idx]
+                X_num_mask_batch = torch.empty(len(batch_idx), 0, device=device) if X_num is None else num_nan_masks[part][
+                    batch_idx]
+                X_cat_mask_batch = torch.empty(len(batch_idx), 0, device=device) if X_cat is None else cat_nan_masks[part][
+                    batch_idx]
+
 
                 model_output = model(X_cat_batch, X_num_batch, X_cat_mask_batch, X_num_mask_batch)
                 predictions[part] = torch.cat([predictions[part], model_output.cpu()])
@@ -624,10 +717,10 @@ if __name__ == "__main__":
             random_state = zero.get_random_state()
             zero.set_random_state(random_state)
 
-            X_num_batch = torch.empty(len(batch_idx), 0) if X_num is None else X_num['train'][batch_idx].float()
-            X_cat_batch =  torch.empty(len(batch_idx), 0) if X_cat is None else X_cat['train'][batch_idx]
-            X_num_mask_batch =  torch.empty(len(batch_idx), 0) if X_num is None else num_nan_masks['train'][batch_idx]
-            X_cat_mask_batch =  torch.empty(len(batch_idx), 0) if X_cat is None else cat_nan_masks['train'][batch_idx]
+            X_num_batch = torch.empty(len(batch_idx), 0, device=device) if X_num is None else X_num['train'][batch_idx].float()
+            X_cat_batch =  torch.empty(len(batch_idx), 0, device=device) if X_cat is None else X_cat['train'][batch_idx]
+            X_num_mask_batch =  torch.empty(len(batch_idx), 0, device=device) if X_num is None else num_nan_masks['train'][batch_idx]
+            X_cat_mask_batch =  torch.empty(len(batch_idx), 0, device=device) if X_cat is None else cat_nan_masks['train'][batch_idx]
 
             optimizer.zero_grad()
             model_output = model(X_cat_batch, X_num_batch, X_cat_mask_batch, X_num_mask_batch)

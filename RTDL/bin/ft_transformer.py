@@ -322,7 +322,21 @@ if __name__ == "__main__":
     timer.run()
 
     # laod data (Numerical features, Categorical features, labels, and dictionary with info for the data)
-    N, C, y, info = lib.data_prep_openml(ds_id = dset_id, seed = args['seed'], task = args['data']['task'], datasplit=[.65, .15, .2])
+    # N, C, y, info = lib.data_prep_openml(ds_id = dset_id, seed = args['seed'], task = args['data']['task'], datasplit=[.65, .15, .2])
+    #####################################################################################
+    # TRANSFER#
+    #####################################################################################
+    N, C, y, info, full_cat_data_for_encoder = lib.data_prep_openml_transfer(ds_id=dset_id,
+                                                  seed=args['seed'],
+                                                  task=args['data']['task'],
+                                                  stage=args['transfer']['stage'],
+                                                  datasplit=[.65, .15, .2],
+                                                  pretrain_proportion=args['transfer']['pretrain_proportion'],
+                                                  downstream_train_data_limit=args['transfer']['downstream_train_data_fraction'])
+    #####################################################################################
+    # TRANSFER#
+    #####################################################################################
+
     D = lib.Dataset(N, C, y, info)
 
     X = D.build_X(
@@ -332,6 +346,7 @@ if __name__ == "__main__":
         cat_policy=args['data'].get('cat_policy', 'indices'),
         cat_min_frequency=args['data'].get('cat_min_frequency', 0.0),
         seed=args['seed'],
+        full_cat_data_for_encoder = full_cat_data_for_encoder
     )
 
     if not isinstance(X, tuple):
@@ -374,16 +389,60 @@ if __name__ == "__main__":
         if D.is_multiclass
         else F.mse_loss
     )
-
     print('Loss fn is {}'.format(loss_fn))
 
+
+    # if 'pretrain' in args['transfer']['stage']:# == 'pretrain':
+    #     source_categories = lib.get_categories(X_cat)
+    #     source_categories_path = output / 'source_categories.pt'
+    #     torch.save(source_categories, source_categories_path)
+    # elif 'downstream' in args['transfer']['stage']:# == 'downstream':
+    #     source_categories_path = Path(args['transfer']['checkpoint_path']).parents[0] / 'source_categories.pt'
+    #     source_categories = torch.load(source_categories_path)
+    # else:
+    #     raise ValueError('Only pretrain or downstream stage is allowed')
+
+    print('\n CATEGORIES:{}\n'.format(lib.get_categories_full_cat_data(full_cat_data_for_encoder)))
     model = Transformer(
         d_numerical=0 if X_num is None else X_num['train'].shape[1],
-        categories=lib.get_categories(X_cat), # I think it's # of unique values in each cat variable
+        categories=lib.get_categories_full_cat_data(full_cat_data_for_encoder), # I think it's # of unique values in each cat variable
         d_out=D.info['n_classes'] if D.is_multiclass else 1,
         **args['model'],
     ).to(device)
 
+    #####################################################################################
+    #TRANSFER#
+    #####################################################################################
+    if ('downstream' in args['transfer']['stage']) and (args['transfer']['load_checkpoint']):
+        print('Loading checkpoint, doing transfer learning')
+        pretrain_checkpoint = torch.load(args['transfer']['checkpoint_path'])
+        # try:
+            #FAILS HERE CURRENTLY BECAUSE OF KEYERROR LOADING PRETRAINED MODEL
+            #NEED DIFFERENT LOAD STATE DICT
+        pretrained_feature_extractor_dict = {k: v for k, v in pretrain_checkpoint['model'].items() if 'head' not in k}
+        missing_keys, unexpected_keys = model.load_state_dict(pretrained_feature_extractor_dict, strict = False)
+        print('\n Loaded \n Missing keys:{}\n Unexpected keys:{}'.format(missing_keys, unexpected_keys))
+        # except:
+        #     model.load_state_dict(lib.remove_parallel(pretrain_checkpoint['model']))
+
+        #Freeze feature extractor
+        if args['transfer']['freeze_feature_extractor']:
+            for name, param in model.named_parameters():
+                print(name, param.shape)
+                if not any(x in name for x in args['transfer']['layers_to_fine_tune']):
+                # if 'head' not in name:
+                    param.requires_grad = False
+                else:
+                    print('\n Unfrozen param {}\n'.format(name))
+    else:
+        print('No transfer learning')
+    #####################################################################################
+    # TRANSFER#
+    #####################################################################################
+
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            print('Trainable', name, param.shape)
 
     if torch.cuda.device_count() > 1:  # type: ignore[code]
         print('Using nn.DataParallel')

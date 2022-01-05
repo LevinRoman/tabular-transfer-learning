@@ -1,10 +1,14 @@
 # Code from https://github.com/lucidrains/tab-transformer-pytorch
-
+from torch import nn, einsum
+from einops import rearrange
+import math
+import typing as ty
+from pathlib import Path
 import torch
 import torch.nn.functional as F
-from torch import nn, einsum
-
-from einops import rearrange
+import zero
+import numpy as np
+import lib
 
 # helpers
 
@@ -201,19 +205,269 @@ class TabTransformer(nn.Module):
 
     def forward(self, x_categ, x_cont):
         assert x_categ.shape[-1] == self.num_categories, f'you must pass in {self.num_categories} values for your categories input'
-        x_categ += self.categories_offset
-
+        x_categ += self.categories_offset.type_as(x_categ)
         x = self.transformer(x_categ)
 
         flat_categ = x.flatten(1)
 
         assert x_cont.shape[1] == self.num_continuous, f'you must pass in {self.num_continuous} values for your continuous input'
 
-        if exists(self.continuous_mean_std):
-            mean, std = self.continuous_mean_std.unbind(dim = -1)
-            x_cont = (x_cont - mean) / std
+        #if exists(self.continuous_mean_std):
+        #    mean, std = self.continuous_mean_std.unbind(dim = -1)
+        #    x_cont = (x_cont - mean) / std
 
-        normed_cont = self.norm(x_cont)
-
-        x = torch.cat((flat_categ, normed_cont), dim = -1)
+        if x_cont.shape[1]!=0:
+            normed_cont = self.norm(x_cont)
+            x = torch.cat((flat_categ, normed_cont), dim = -1)
+        else:
+            x = flat_categ
         return self.mlp(x)
+
+
+
+if __name__ == "__main__":
+    args, output = lib.load_config()
+    args['model'].setdefault('token_bias', True)
+    args['model'].setdefault('kv_compression', None)
+    args['model'].setdefault('kv_compression_sharing', None)
+    print(args)
+
+    '''Building Dataset'''
+    zero.set_randomness(args['seed'])
+    dset_id = args['data']['dset_id']
+    stats: ty.Dict[str, ty.Any] = {
+        'dataset': dset_id,
+        'algorithm': Path(__file__).stem,
+        **lib.load_json(output / 'stats.json'),
+    }
+
+    timer = zero.Timer()
+    timer.run()
+
+    # laod data (Numerical features, Categorical features, labels, and dictionary with info for the data)
+    N, C, y, info = lib.data_prep_openml(ds_id = dset_id, seed = args['seed'], task = args['data']['task'], datasplit=[.65, .15, .2])
+    D = lib.Dataset(N, C, y, info)
+
+    X = D.build_X(
+        normalization=args['data']['normalization'],
+        num_nan_policy='mean',   # replace missing values in numerical features by mean
+        cat_nan_policy='new',    # replace missing values in categorical features by new values
+        cat_policy=args['data'].get('cat_policy', 'indices'),
+        cat_min_frequency=args['data'].get('cat_min_frequency', 0.0),
+        seed=args['seed'],
+    )
+
+
+    if not isinstance(X, tuple):
+        X = (X, None)
+    zero.set_randomness(args['seed'])
+
+    Y, y_info = D.build_y(args['data'].get('y_policy'))
+    lib.dump_pickle(y_info, output / 'y_info.pickle')
+    X = tuple(None if x is None else lib.to_tensors(x) for x in X)
+
+    Y = lib.to_tensors(Y)
+    device = lib.get_device()
+
+    if device.type != 'cpu':
+        X = tuple(
+            None if x is None else {k: v.to(device) for k, v in x.items()} for x in X
+        )
+        Y_device = {k: v.to(device) for k, v in Y.items()}
+    else:
+        Y_device = Y
+
+    X_num, X_cat, num_nan_masks, cat_nan_masks = X
+
+
+    if X_num is None:
+        # this is hardcoded for saint since it needs numerical features and nan mask as input even when there are no
+        # numerical features in the data
+        X_num = {'train': torch.empty(X_cat['train'].shape[0], 0).long().to(device),
+                 'val': torch.empty(X_cat['val'].shape[0], 0).long().to(device),
+                 'test': torch.empty(X_cat['test'].shape[0], 0).long().to(device)}
+
+    del X
+    if not D.is_multiclass:
+        Y_device = {k: v.float() for k, v in Y_device.items()}
+
+    '''Constructing loss function, model and optimizer'''
+
+    train_size = D.size(lib.TRAIN)
+    batch_size = args['training']['batch_size']
+    epoch_size = stats['epoch_size'] = math.ceil(train_size / batch_size)
+    eval_batch_size = args['training']['eval_batch_size']
+    print('Train size is {}, batch_size is {}, epoch_size is {}, eval_batch_size is {}'.format(train_size, batch_size,
+                                                                                               epoch_size, eval_batch_size))
+
+    loss_fn = (
+        F.binary_cross_entropy_with_logits
+        if D.is_binclass
+        else F.cross_entropy
+        if D.is_multiclass
+        else F.mse_loss
+    )
+
+    print('Loss fn is {}'.format(loss_fn))
+
+    model = TabTransformer(
+        categories = lib.get_categories(X_cat),
+        num_continuous = X_num['train'].shape[1],
+        dim = 8,
+        depth =  1,
+        heads = 1,
+        dim_head = 16,
+        dim_out = 1,
+        mlp_hidden_mults = (4, 2),
+        mlp_act = None,
+        num_special_tokens = 2,
+        continuous_mean_std = None,
+        attn_dropout = 0.,
+        ff_dropout = 0.
+    ).to(device)
+
+
+    if torch.cuda.device_count() > 1:  # type: ignore[code]
+        print('Using nn.DataParallel')
+        model = nn.DataParallel(model)
+    stats['n_parameters'] = lib.get_n_parameters(model)
+
+    def needs_wd(name):
+        return all(x not in name for x in ['tokenizer', '.norm', '.bias'])
+
+    # TODO: need to change this if we want to not apply weight decay to some groups of parameters like ft_transformer
+
+    parameters_with_wd = [v for k, v in model.named_parameters() if needs_wd(k)]
+    parameters_without_wd = [v for k, v in model.named_parameters() if not needs_wd(k)]
+    optimizer = lib.make_optimizer(
+        args['training']['optimizer'],
+        (
+            [
+                {'params': parameters_with_wd},
+                {'params': parameters_without_wd, 'weight_decay': 0.0},
+            ]
+        ),
+        args['training']['lr'],
+        args['training']['weight_decay'],
+    )
+
+
+    stream = zero.Stream(lib.IndexLoader(train_size, batch_size, True, device))
+    progress = zero.ProgressTracker(args['training']['patience'])
+    training_log = {lib.TRAIN: [], lib.VAL: [], lib.TEST: []}
+    timer = zero.Timer()
+    checkpoint_path = output / 'checkpoint.pt'
+
+    def print_epoch_info():
+        print(f'\n>>> Epoch {stream.epoch} | {lib.format_seconds(timer())} | {output}')
+        print(
+            ' | '.join(
+                f'{k} = {v}'
+                for k, v in {
+                    'lr': lib.get_lr(optimizer),
+                    'batch_size': batch_size,
+                    'epoch_size': stats['epoch_size'],
+                    'n_parameters': stats['n_parameters'],
+                }.items()
+            )
+        )
+
+
+    @torch.no_grad()
+    def evaluate(parts):
+        model.eval()
+        metrics = {}
+        predictions = {}
+        for part in parts:
+            predictions[part] = torch.tensor([])
+            for batch_idx in lib.IndexLoader(D.size(part), eval_batch_size, False, device):
+                X_num_batch = X_num[part][batch_idx].float()
+                X_cat_batch = X_cat[part][batch_idx]
+
+                model_output = model(X_cat_batch, X_num_batch)
+                predictions[part] = torch.cat([predictions[part], model_output.cpu()])
+
+            metrics[part] = lib.calculate_metrics(
+                D.info['task_type'],
+                Y[part].numpy(),  # type: ignore[code]
+                predictions[part].numpy(),  # type: ignore[code]
+                'logits',
+                y_info,
+            )
+        for part, part_metrics in metrics.items():
+            print(f'[{part:<5}]', lib.make_summary(part_metrics))
+        return metrics, predictions
+
+    def save_checkpoint(final):
+        torch.save(
+            {
+                'model': model.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'stream': stream.state_dict(),
+                'random_state': zero.get_random_state(),
+                **{
+                    x: globals()[x]
+                    for x in [
+                        'progress',
+                        'stats',
+                        'timer',
+                        'training_log',
+                    ]
+                },
+            },
+            checkpoint_path,
+        )
+        lib.dump_stats(stats, output, final)
+        lib.backup_output(output)
+
+    # %%
+    timer.run()
+    for epoch in stream.epochs(args['training']['n_epochs']):
+        print_epoch_info()
+
+        model.train()
+        epoch_losses = []
+        for batch_idx in epoch:
+
+            random_state = zero.get_random_state()
+            zero.set_random_state(random_state)
+
+            X_num_batch = torch.empty(len(batch_idx), 0) if X_num is None else X_num['train'][batch_idx].float()
+            X_cat_batch =  torch.empty(len(batch_idx), 0) if X_cat is None else X_cat['train'][batch_idx]
+
+            optimizer.zero_grad()
+            model_output = model(X_cat_batch, X_num_batch)
+            loss = loss_fn(model_output.squeeze(), Y_device['train'][batch_idx])
+            loss.backward()
+            optimizer.step()
+            epoch_losses.append(loss.detach())
+
+        epoch_losses = torch.stack(epoch_losses).tolist()
+        training_log[lib.TRAIN].extend(epoch_losses)
+        print(f'[{lib.TRAIN}] loss = {round(sum(epoch_losses) / len(epoch_losses), 3)}')
+
+        metrics, predictions = evaluate([lib.VAL, lib.TEST])
+        for k, v in metrics.items():
+            training_log[k].append(v)
+        progress.update(metrics[lib.VAL]['score'])
+
+        if progress.success:
+            print('New best epoch!')
+            stats['best_epoch'] = stream.epoch
+            stats['metrics'] = metrics
+            save_checkpoint(False)
+            for k, v in predictions.items():
+                np.save(output / f'p_{k}.npy', v)
+
+        elif progress.fail: # stopping criterion is based on val accuracy (see patience arg in args)
+            break
+
+    # %%
+    print('\nRunning the final evaluation...')
+    model.load_state_dict(torch.load(checkpoint_path)['model'])
+    stats['metrics'], predictions = evaluate(lib.PARTS)
+    for k, v in predictions.items():
+        np.save(output / f'p_{k}.npy', v)
+    stats['time'] = lib.format_seconds(timer())
+    save_checkpoint(True)
+    print('Done!')

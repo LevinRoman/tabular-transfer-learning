@@ -87,6 +87,7 @@ class Dataset:
         cat_policy: str,
         cat_min_frequency: float = 0.0,
         seed: int,
+        full_cat_data_for_encoder = None
     ) -> ty.Union[ArrayDict, ty.Tuple[ArrayDict, ArrayDict]]:
 
         print('Building Dataset')
@@ -116,7 +117,7 @@ class Dataset:
         # if there are no categorical features, return only numerical features
         if cat_policy == 'drop' or not self.C:
             assert N is not None
-            return N
+            return (N, None, num_nan_masks_int, None)
 
 
         # if there are cat features, pre-process them
@@ -167,7 +168,7 @@ class Dataset:
             handle_unknown='use_encoded_value',  # type: ignore[code]
             unknown_value=unknown_value,  # type: ignore[code]
             dtype='int64',  # type: ignore[code]
-        ).fit(C['train'])
+        ).fit(full_cat_data_for_encoder)#.fit(C['train'])
         C = {k: encoder.transform(v) for k, v in C.items()}
         max_values = C['train'].max(axis=0)
         for part in ['val', 'test']:
@@ -184,11 +185,12 @@ class Dataset:
             ohe = sklearn.preprocessing.OneHotEncoder(
                 handle_unknown='ignore', sparse=False, dtype='float32'  # type: ignore[code]
             )
-            ohe.fit(C['train'])
+            ohe.fit(full_cat_data_for_encoder)#fit(C['train'])
             C = {k: ohe.transform(v) for k, v in C.items()}
             result = C if N is None else {x: np.hstack((N[x], C[x])) for x in N}
             print(result['train'])
         elif cat_policy == 'counter':
+            raise NotImplementedError('Counter policy for categorical features has not been adjusted for the transfer learning setting')
             assert seed is not None
             loo = LeaveOneOutEncoder(sigma=0.1, random_state=seed, return_df=False)
             loo.fit(C['train'], self.y['train'])

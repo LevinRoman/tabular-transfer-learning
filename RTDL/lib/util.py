@@ -15,6 +15,7 @@ import numpy as np
 import pynvml
 import pytomlpp as toml
 import torch
+from collections import OrderedDict
 
 from . import env
 
@@ -203,6 +204,20 @@ def format_seconds(seconds: float) -> str:
     return str(datetime.timedelta(seconds=round(seconds)))
 
 
+# def get_categories(
+#     X_cat: ty.Optional[ty.Dict[str, torch.Tensor]]
+# ) -> ty.Optional[ty.List[int]]:
+#     return (
+#         None
+#         if X_cat is None
+#         else [
+#             max(len(set(X_cat[TRAIN][:, i].cpu().tolist())),
+#                 len(set(X_cat[VAL][:, i].cpu().tolist())),
+#                 len(set(X_cat[TEST][:, i].cpu().tolist())))
+#             for i in range(X_cat[TRAIN].shape[1])
+#         ]
+#     )
+
 def get_categories(
     X_cat: ty.Optional[ty.Dict[str, torch.Tensor]]
 ) -> ty.Optional[ty.List[int]]:
@@ -210,10 +225,26 @@ def get_categories(
         None
         if X_cat is None
         else [
-            max(len(set(X_cat[TRAIN][:, i].cpu().tolist())),
-                len(set(X_cat[VAL][:, i].cpu().tolist())),
-                len(set(X_cat[TEST][:, i].cpu().tolist())))
+            len(set(X_cat[TRAIN][:, i].cpu().tolist()))
             for i in range(X_cat[TRAIN].shape[1])
         ]
     )
 
+def get_categories_full_cat_data(full_cat_data_for_encoder):
+    return (
+        None
+        if full_cat_data_for_encoder is None
+        else [
+            len(set(full_cat_data_for_encoder.values[:, i]))
+            for i in range(full_cat_data_for_encoder.shape[1])
+        ]
+    )
+
+def remove_parallel(state_dict):
+    ''' state_dict: state_dict of model saved with DataParallel()
+        returns state_dict without extra module level '''
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        name = k[7:] # remove module.
+        new_state_dict[name] = v
+    return new_state_dict
