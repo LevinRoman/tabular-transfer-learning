@@ -278,8 +278,7 @@ class SAINT(nn.Module):
             # why do we want to register it?
             self.register_buffer('categories_offset', categories_offset)
         else:
-            self.num_categories = 0
-            self.total_tokens = 0
+            raise ValueError('self.num_categories cannot be None here')
 
         # Batch Normalization Layer for continuous features
         self.norm = nn.LayerNorm(num_continuous)
@@ -516,15 +515,15 @@ if __name__ == "__main__":
     X_num, X_cat, num_nan_masks, cat_nan_masks = X
 
 
-    if X_num is None:
-        # this is hardcoded for saint since it needs numerical features and nan mask as input even when there are no
-        # numerical features in the data
-        X_num = {'train': torch.empty(X_cat['train'].shape[0], 0).long().to(device),
-                 'val': torch.empty(X_cat['val'].shape[0], 0).long().to(device),
-                 'test': torch.empty(X_cat['test'].shape[0], 0).long().to(device)}
-        num_nan_masks = {'train': torch.empty(X_cat['train'].shape[0], 0).long().to(device),
-                 'val': torch.empty(X_cat['val'].shape[0], 0).long().to(device),
-                 'test': torch.empty(X_cat['test'].shape[0], 0).long().to(device)}
+    # if X_num is None:
+    #     # this is hardcoded for saint since it needs numerical features and nan mask as input even when there are no
+    #     # numerical features in the data
+    #     X_num = {'train': torch.empty(X_cat['train'].shape[0], 0).long().to(device),
+    #              'val': torch.empty(X_cat['val'].shape[0], 0).long().to(device),
+    #              'test': torch.empty(X_cat['test'].shape[0], 0).long().to(device)}
+    #     num_nan_masks = {'train': torch.empty(X_cat['train'].shape[0], 0).long().to(device),
+    #              'val': torch.empty(X_cat['val'].shape[0], 0).long().to(device),
+    #              'test': torch.empty(X_cat['test'].shape[0], 0).long().to(device)}
 
     del X
     if not D.is_multiclass:
@@ -663,7 +662,7 @@ if __name__ == "__main__":
 
                 X_num_batch = torch.empty(len(batch_idx), 0, device=device) if X_num is None else X_num[part][batch_idx].float()
                 X_cat_batch = torch.empty(len(batch_idx), 0, device=device) if X_cat is None else X_cat[part][batch_idx]
-                X_num_mask_batch = torch.empty(len(batch_idx), 0, device=device) if X_num is None else num_nan_masks[part][
+                X_num_mask_batch = torch.empty(len(batch_idx), 0, device=device).long() if X_num is None else num_nan_masks[part][
                     batch_idx]
                 X_cat_mask_batch = torch.empty(len(batch_idx), 0, device=device) if X_cat is None else cat_nan_masks[part][
                     batch_idx]

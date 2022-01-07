@@ -18,6 +18,10 @@ pretrain_proportion = 0.5
 downstream_train_data_fraction = 0.1
 freeze_feature_extractor = false
 layers_to_fine_tune = []#['head', 'last_normalization']#, 'norm']
+use_mlp_head = true
+num_batch_warm_up_head = 500
+head_lr = 1e-4
+
 
 [model]
 activation = 'reglu'
@@ -34,9 +38,10 @@ residual_dropout = 0.0
 [training]
 batch_size = 256
 eval_batch_size = 8192
-lr = 0.00001 #could be 1e-5 -- 10x smaller for transfer
+lr = 0.00001 #could be 1e-5 -- 10x smaller for transfer than pretrain
 lr_n_decays = 0
 n_epochs = 1000000000
 optimizer = 'adamw'
 patience = 16
 weight_decay = 1e-05
+num_batch_warm_up = 0

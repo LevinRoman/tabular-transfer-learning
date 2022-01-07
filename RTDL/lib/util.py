@@ -248,3 +248,18 @@ def remove_parallel(state_dict):
         name = k[7:] # remove module.
         new_state_dict[name] = v
     return new_state_dict
+
+def warm_up_lr(batch, num_batch_warm_up, init_lr, optimizer):
+    for params in optimizer.param_groups:
+        params['lr'] = batch * init_lr / num_batch_warm_up
+
+def freeze_parameters(model, unfrozen_param_list):
+    for name, param in model.named_parameters():
+        print(name, param.shape)
+        if not any(x in name for x in unfrozen_param_list):
+            # if 'head' not in name:
+            param.requires_grad = False
+
+def unfreeze_all_params(model):
+    for name, param in model.named_parameters():
+        param.requires_grad = True

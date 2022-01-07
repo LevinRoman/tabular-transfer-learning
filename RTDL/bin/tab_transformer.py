@@ -245,7 +245,24 @@ if __name__ == "__main__":
     timer.run()
 
     # laod data (Numerical features, Categorical features, labels, and dictionary with info for the data)
-    N, C, y, info = lib.data_prep_openml(ds_id = dset_id, seed = args['seed'], task = args['data']['task'], datasplit=[.65, .15, .2])
+    # N, C, y, info = lib.data_prep_openml(ds_id = dset_id, seed = args['seed'], task = args['data']['task'], datasplit=[.65, .15, .2])
+    #####################################################################################
+    # TRANSFER#
+    #####################################################################################
+    N, C, y, info, full_cat_data_for_encoder = lib.data_prep_openml_transfer(ds_id=dset_id,
+                                                                             seed=args['seed'],
+                                                                             task=args['data']['task'],
+                                                                             stage=args['transfer']['stage'],
+                                                                             datasplit=[.65, .15, .2],
+                                                                             pretrain_proportion=args['transfer'][
+                                                                                 'pretrain_proportion'],
+                                                                             downstream_train_data_limit=
+                                                                             args['transfer'][
+                                                                                 'downstream_train_data_fraction'])
+    #####################################################################################
+    # TRANSFER#
+    #####################################################################################
+
     D = lib.Dataset(N, C, y, info)
 
     X = D.build_X(
@@ -311,7 +328,7 @@ if __name__ == "__main__":
     print('Loss fn is {}'.format(loss_fn))
 
     model = TabTransformer(
-        categories = lib.get_categories(X_cat),
+        categories = lib.get_categories_full_cat_data(full_cat_data_for_encoder),#lib.get_categories(X_cat),
         num_continuous = X_num['train'].shape[1],
         dim = 8,
         depth =  1,
@@ -326,6 +343,39 @@ if __name__ == "__main__":
         ff_dropout = 0.
     ).to(device)
 
+    #####################################################################################
+    # TRANSFER#
+    #####################################################################################
+    if ('downstream' in args['transfer']['stage']) and (args['transfer']['load_checkpoint']):
+        print('Loading checkpoint, doing transfer learning')
+        pretrain_checkpoint = torch.load(args['transfer']['checkpoint_path'])
+        # try:
+        # FAILS HERE CURRENTLY BECAUSE OF KEYERROR LOADING PRETRAINED MODEL
+        # NEED DIFFERENT LOAD STATE DICT
+        pretrained_feature_extractor_dict = {k: v for k, v in pretrain_checkpoint['model'].items() if 'head' not in k}
+        missing_keys, unexpected_keys = model.load_state_dict(pretrained_feature_extractor_dict, strict=False)
+        print('\n Loaded \n Missing keys:{}\n Unexpected keys:{}'.format(missing_keys, unexpected_keys))
+        # except:
+        #     model.load_state_dict(lib.remove_parallel(pretrain_checkpoint['model']))
+
+        # Freeze feature extractor
+        if args['transfer']['freeze_feature_extractor']:
+            for name, param in model.named_parameters():
+                print(name, param.shape)
+                if not any(x in name for x in args['transfer']['layers_to_fine_tune']):
+                    # if 'head' not in name:
+                    param.requires_grad = False
+                else:
+                    print('\n Unfrozen param {}\n'.format(name))
+    else:
+        print('No transfer learning')
+    #####################################################################################
+    # TRANSFER#
+    #####################################################################################
+
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            print('Trainable', name, param.shape)
 
     if torch.cuda.device_count() > 1:  # type: ignore[code]
         print('Using nn.DataParallel')

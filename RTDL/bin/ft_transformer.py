@@ -416,14 +416,22 @@ if __name__ == "__main__":
     if ('downstream' in args['transfer']['stage']) and (args['transfer']['load_checkpoint']):
         print('Loading checkpoint, doing transfer learning')
         pretrain_checkpoint = torch.load(args['transfer']['checkpoint_path'])
-        # try:
-            #FAILS HERE CURRENTLY BECAUSE OF KEYERROR LOADING PRETRAINED MODEL
-            #NEED DIFFERENT LOAD STATE DICT
+
         pretrained_feature_extractor_dict = {k: v for k, v in pretrain_checkpoint['model'].items() if 'head' not in k}
         missing_keys, unexpected_keys = model.load_state_dict(pretrained_feature_extractor_dict, strict = False)
         print('\n Loaded \n Missing keys:{}\n Unexpected keys:{}'.format(missing_keys, unexpected_keys))
         # except:
         #     model.load_state_dict(lib.remove_parallel(pretrain_checkpoint['model']))
+        # model = torchvision.models.resnet18(pretrained=False)
+        if args['transfer']['use_mlp_head']:
+            emb_dim = model.head.in_features
+            out_dim = model.head.out_features
+            model.head = nn.Sequential(
+                nn.Linear(emb_dim, 200),
+                nn.ReLU(),
+                nn.Linear(200, 200),
+                nn.ReLU(),
+                nn.Linear(200, out_dim)).to(device)
 
         #Freeze feature extractor
         if args['transfer']['freeze_feature_extractor']:
@@ -456,19 +464,42 @@ if __name__ == "__main__":
         assert any(x in a for a in (b[0] for b in model.named_parameters()))
     parameters_with_wd = [v for k, v in model.named_parameters() if needs_wd(k)]
     parameters_without_wd = [v for k, v in model.named_parameters() if not needs_wd(k)]
-    optimizer = lib.make_optimizer(
-        args['training']['optimizer'],
-        (
-            [
-                {'params': parameters_with_wd},
-                {'params': parameters_without_wd, 'weight_decay': 0.0},
-            ]
-        ),
-        args['training']['lr'],
-        args['training']['weight_decay'],
-    )
+    print('\n\n HEAD LR {}: {}\n\n'.format(args['transfer']['head_lr'], np.isnan(args['transfer']['head_lr']) ))
 
-
+    ###############################################################
+    # TRANSFER: differential learning rates for head and feat extr
+    ###############################################################
+    if ('downstream' in args['transfer']['stage']) and (not np.isnan(args['transfer']['head_lr'])):
+        parameters_with_wd = [v for k, v in model.named_parameters() if (needs_wd(k)) and ('head' not in k)]
+        parameters_without_wd = [v for k, v in model.named_parameters() if (not needs_wd(k)) and ('head' not in k)]
+        head_parameters = [v for k, v in model.named_parameters() if 'head' in k]
+        optimizer = lib.make_optimizer(
+            args['training']['optimizer'],
+            (
+                [
+                    {'params': parameters_with_wd},
+                    {'params': parameters_without_wd, 'weight_decay': 0.0},
+                    {'params': head_parameters, 'lr': args['transfer']['head_lr']}
+                ]
+            ),
+            args['training']['lr'],
+            args['training']['weight_decay'],
+        )
+    else:
+        optimizer = lib.make_optimizer(
+            args['training']['optimizer'],
+            (
+                [
+                    {'params': parameters_with_wd},
+                    {'params': parameters_without_wd, 'weight_decay': 0.0},
+                ]
+            ),
+            args['training']['lr'],
+            args['training']['weight_decay'],
+        )
+    ###############################################################
+    # TRANSFER: differential learning rates for head and feat extr
+    ###############################################################
     stream = zero.Stream(lib.IndexLoader(train_size, batch_size, True, device))
     progress = zero.ProgressTracker(args['training']['patience'])
     training_log = {lib.TRAIN: [], lib.VAL: [], lib.TEST: []}
@@ -539,13 +570,40 @@ if __name__ == "__main__":
 
    # %%
     timer.run()
+    epoch_idx = 0
+    #If doing head warmup
+    if args['transfer']['num_batch_warm_up_head'] > 0:
+        lib.freeze_parameters(model, ['head'])
+        head_warmup_flag = True
     for epoch in stream.epochs(args['training']['n_epochs']):
         print_epoch_info()
 
         model.train()
         epoch_losses = []
+        cur_batch = 0
         for batch_idx in epoch:
+            ###########
+            # Transfer: head warmup
+            ###########
+            #If doing head warmup
+            if args['transfer']['num_batch_warm_up_head'] > 0:
+                if head_warmup_flag:
+                    if epoch_idx * epoch_size + cur_batch + 1 >= args['transfer']['num_batch_warm_up_head']:
+                        #Stop warming up head after a predefined number of batches
+                        lib.unfreeze_all_params(model)
+                        head_warmup_flag = False
+            ###########
+            # Transfer: head warmup
+            ###########
 
+            ###########
+            #Transfer: lr warmup
+            ###########
+            if epoch_idx*epoch_size + cur_batch + 1 <= args['training']['num_batch_warm_up']:  # adjust LR for each training batch during warm up
+                lib.warm_up_lr(epoch_idx*epoch_size + cur_batch + 1, args['training']['num_batch_warm_up'], args['training']['lr'], optimizer)
+            ###########
+            # Transfer: lr warmup
+            ###########
             random_state = zero.get_random_state()
             zero.set_random_state(random_state)
 
@@ -558,6 +616,7 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
             epoch_losses.append(loss.detach())
+            cur_batch += 1
 
         epoch_losses = torch.stack(epoch_losses).tolist()
         training_log[lib.TRAIN].extend(epoch_losses)
@@ -578,7 +637,7 @@ if __name__ == "__main__":
 
         elif progress.fail: # stopping criterion is based on val accuracy (see patience arg in args)
             break
-
+        epoch_idx += 1
     # %%
     print('\nRunning the final evaluation...')
     model.load_state_dict(torch.load(checkpoint_path)['model'])
