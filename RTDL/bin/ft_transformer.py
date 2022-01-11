@@ -612,7 +612,9 @@ if __name__ == "__main__":
 
             optimizer.zero_grad()
             model_output = model(X_num_batch, X_cat_batch)
-            loss = loss_fn(model_output.squeeze(), Y_device['train'][batch_idx])
+            # print(model_output, Y_device['train'][batch_idx], Y_device['train'][batch_idx].dtype)
+            #Could use .squeeze() in here
+            loss = loss_fn(model_output, Y_device['train'][batch_idx])
             loss.backward()
             optimizer.step()
             epoch_losses.append(loss.detach())

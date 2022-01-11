@@ -1,6 +1,6 @@
 
 #Pretrain
-python bin/ft_transformer.py output/1483/ft_transformer/multiclass_transfer/pretrain/default/0.toml
+python bin/ft_transformer.py output/1483/ft_transformer/multiclass_transfer/pretrain/default/0.toml -f
 
 ##################################
 #Data frac 0.1

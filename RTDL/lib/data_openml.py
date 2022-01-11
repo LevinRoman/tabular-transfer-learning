@@ -4,6 +4,7 @@ from sklearn.preprocessing import LabelEncoder
 import pickle
 import os
 import random
+import pandas as pd
 
 def get_cont_cat_features(dataset_id):
     if dataset_id == 6:
@@ -243,10 +244,19 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
     np.random.seed(seed)
     dataset = openml.datasets.get_dataset(ds_id)
     # load data
-    X_full, y_full, _, _ = dataset.get_data(dataset_format="dataframe", target=dataset.default_target_attribute)
+    X_full, y_full, categorical_indicator, attribute_names = dataset.get_data(dataset_format="dataframe", target=dataset.default_target_attribute)
 
     # get cat, cont columns
-    categorical_columns, numerical_columns = get_cont_cat_features(ds_id)
+    # categorical_columns, numerical_columns = get_cont_cat_features(ds_id)
+    # categorical_columns = X_full.columns[list(np.where(np.array(categorical_indicator) == True)[0])].tolist()
+    # numerical_columns = list(set(X_full.columns.tolist()) - set(categorical_columns))
+    categorical_columns = list(X_full.columns[np.array(categorical_indicator)])
+    numerical_columns = list(X_full.columns[~np.array(categorical_indicator)])
+    print(numerical_columns)
+    print(categorical_columns)
+    print(X_full.shape, y_full.shape, y_full.dtype)
+    if y_full.dtype == "category":
+        y_full = y_full.apply(str).astype('object')
 
     #Split into pretrain/downstream datasets
     if task == 'multiclass':
