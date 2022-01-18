@@ -49,14 +49,14 @@ def build_score_table(args):
                     pretrain_train_score = []
                     pretrain_val_score = []
                     pretrain_test_score = []
-                    pretrain_train_support = []
+                    # pretrain_train_support = []
                     for seed in range(args.num_seeds):
                         #First, pretraining results:
                         pretrain_json_path = os.path.join(dir_path, model, task, 'pretrain', experiment, str(seed),
                                                  'stats.json')
                         pretrain_di = lib.load_json(pretrain_json_path)
                         if args.average:
-                            pretrain_train_support.append(pretrain_di['metrics']['train']['weighted avg']['support'])
+                            # pretrain_train_support.append(pretrain_di['metrics']['train']['weighted avg']['support'])
                             pretrain_train_score.append(pretrain_di['metrics']['train']['score'])
                             pretrain_val_score.append(pretrain_di['metrics']['val']['score'])
                             pretrain_test_score.append(pretrain_di['metrics']['test']['score'])
@@ -68,7 +68,7 @@ def build_score_table(args):
                             #     'task': task,
                             #     'experiment': experiment,
                             #     'seed': seed,
-                            #     'pretrain_support': pretrain_di['metrics']['train']['weighted avg']['support'],
+#                             #     'pretrain_support': pretrain_di['metrics']['train']['weighted avg']['support'],
                             #     'pretrain_train_score': np.round(pretrain_di['metrics']['train']['score'], 3),
                             #     'pretrain_val_score': np.round(pretrain_di['metrics']['val']['score'], 3),
                             #     'pretrain_test_score': np.round(pretrain_di['metrics']['test']['score'], 3)
@@ -81,7 +81,7 @@ def build_score_table(args):
                             'task': task,
                             'experiment': experiment,
                             'seed': seed,
-                            'pretrain_support': np.round(np.mean(pretrain_train_support), 3),
+                            # 'pretrain_support': np.round(np.mean(pretrain_train_support), 3),
                             'pretrain_train_score': np.round(np.mean(pretrain_train_score), 3),
                             'pretrain_val_score': np.round(np.mean(pretrain_val_score), 3),
                             'pretrain_test_score': np.round(np.mean(pretrain_test_score), 3)
@@ -95,20 +95,20 @@ def build_score_table(args):
                             no_transfer_train_score = []
                             no_transfer_val_score = []
                             no_transfer_test_score = []
-                            no_transfer_train_support = []
+                            # no_transfer_train_support = []
                             for seed in range(args.num_seeds):
                                 no_transfer_json_path = os.path.join(dir_path, model, task, 'downstream',
                                                                   'data_frac_{}'.format(data_frac), 'no_transfer',
                                                                   no_transfer_setup, experiment, str(seed), 'stats.json')
                                 no_transfer_di = lib.load_json(no_transfer_json_path)
                                 if args.average:
-                                    no_transfer_train_support.append(no_transfer_di['metrics']['train']['weighted avg']['support'])
+                                    # no_transfer_train_support.append(no_transfer_di['metrics']['train']['weighted avg']['support'])
                                     no_transfer_train_score.append(no_transfer_di['metrics']['train']['score'])
                                     no_transfer_val_score.append(no_transfer_di['metrics']['val']['score'])
                                     no_transfer_test_score.append(no_transfer_di['metrics']['test']['score'])
                                 else:
                                     raise NotImplementedError('saving separate seeds is tedious!')
-                                    # results['no_tr_{}_support'.format(no_transfer_setup)] = no_transfer_di['metrics']['train']['weighted avg']['support']
+#                                     # results['no_tr_{}_support'.format(no_transfer_setup)] = no_transfer_di['metrics']['train']['weighted avg']['support']
                                     # results['no_tr_{}_train_score'.format(no_transfer_setup)] = np.round(
                                     #     no_transfer_di['metrics']['train']['score'], 3)
                                     # results['no_tr_{}_val_score'.format(no_transfer_setup)] = np.round(
@@ -118,7 +118,7 @@ def build_score_table(args):
 
 
                             if args.average:
-                                results['no_tr_{}_support'.format(no_transfer_setup)] = np.mean(no_transfer_train_support)
+                                # results['no_tr_{}_support'.format(no_transfer_setup)] = np.mean(no_transfer_train_support)
                                 results['no_tr_{}_train_score'.format(no_transfer_setup)] = np.round(
                                     np.mean(no_transfer_train_score), 3)
                                 results['no_tr_{}_val_score'.format(no_transfer_setup)] = np.round(
@@ -131,7 +131,7 @@ def build_score_table(args):
                             transfer_train_score = []
                             transfer_val_score = []
                             transfer_test_score = []
-                            transfer_train_support = []
+                            # transfer_train_support = []
                             for seed in range(args.num_seeds):
                                 transfer_json_path = os.path.join(dir_path, model, task, 'downstream',
                                                                      'data_frac_{}'.format(data_frac), 'transfer',
@@ -139,13 +139,13 @@ def build_score_table(args):
                                                                      'stats.json')
                                 transfer_di = lib.load_json(transfer_json_path)
                                 if args.average:
-                                    transfer_train_support.append(transfer_di['metrics']['train']['weighted avg']['support'])
+                                    # transfer_train_support.append(transfer_di['metrics']['train']['weighted avg']['support'])
                                     transfer_train_score.append(transfer_di['metrics']['train']['score'])
                                     transfer_val_score.append(transfer_di['metrics']['val']['score'])
                                     transfer_test_score.append(transfer_di['metrics']['test']['score'])
                                 else:
                                     raise NotImplementedError('saving separate seeds is tedious!')
-                                    # results['tr_{}_support'.format(transfer_setup)] = transfer_di['metrics']['train']['weighted avg']['support']
+#                                     # results['tr_{}_support'.format(transfer_setup)] = transfer_di['metrics']['train']['weighted avg']['support']
                                     # results['tr_{}_train_score'.format(transfer_setup)] = np.round(
                                     #     transfer_di['metrics']['train']['score'], 3)
                                     # results['tr_{}_val_score'.format(transfer_setup)] = np.round(
@@ -154,8 +154,8 @@ def build_score_table(args):
                                     #     transfer_di['metrics']['test']['score'], 3)
 
                             if args.average:
-                                results['tr_{}_support'.format(transfer_setup)] = np.mean(
-                                    transfer_train_support)
+                                # results['tr_{}_support'.format(transfer_setup)] = np.mean(
+                                #     transfer_train_support)
                                 results['tr_{}_train_score'.format(transfer_setup)] = np.round(
                                     np.mean(transfer_train_score), 3)
                                 results['tr_{}_val_score'.format(transfer_setup)] = np.round(

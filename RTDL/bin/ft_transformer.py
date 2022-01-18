@@ -336,6 +336,20 @@ if __name__ == "__main__":
     #####################################################################################
     # TRANSFER#
     #####################################################################################
+    if args['data']['task'] == 'multiclass':
+        stats['num_classes'] = len(set(y['train']))
+    else:
+        stats['num_classes'] = np.nan
+
+    stats['num_training_samples'] = len(y['train'])
+    if C is not None:
+        stats['cat_features_no'] = C['train'].shape[1]
+    else:
+        stats['cat_features_no'] = 0
+    if N is not None:
+        stats['num_features_no'] = N['train'].shape[1]
+    else:
+        stats['num_features_no'] = 0
 
     D = lib.Dataset(N, C, y, info)
 
@@ -354,9 +368,13 @@ if __name__ == "__main__":
     zero.set_randomness(args['seed'])
 
     Y, y_info = D.build_y(args['data'].get('y_policy'))
+
+    print('\n Y: {} {} \n'.format(Y['train'].sum(axis = 0), Y['train'].shape))
     lib.dump_pickle(y_info, output / 'y_info.pickle')
     X = tuple(None if x is None else lib.to_tensors(x) for x in X)
     Y = lib.to_tensors(Y)
+
+    # print('\n Y shape: {} \n'.format(Y.shape))
     device = lib.get_device()
     print('Device is {}'.format(device))
     if device.type != 'cpu':
@@ -406,7 +424,7 @@ if __name__ == "__main__":
     model = Transformer(
         d_numerical=0 if X_num is None else X_num['train'].shape[1],
         categories=lib.get_categories_full_cat_data(full_cat_data_for_encoder), # I think it's # of unique values in each cat variable
-        d_out=D.info['n_classes'] if D.is_multiclass else 1,
+        d_out=D.info['n_classes'] if D.is_multiclass or D.is_binclass else 1, #multilabel in case of pretraining binclass
         **args['model'],
     ).to(device)
 
