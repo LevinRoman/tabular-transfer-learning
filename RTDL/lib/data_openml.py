@@ -6,6 +6,7 @@ import os
 import random
 import pandas as pd
 import lib
+import torch
 
 def get_cont_cat_features(dataset_id):
     if dataset_id == 6:
@@ -195,6 +196,7 @@ def class_split(y, ds_id, p=0.5, class_split_path=os.path.join('transfer', "clas
     splits classes into pretraining classes with proportion p and downstream classes with proportion 1-p,
     rounds down the number of pretraining classes
     '''
+    random.seed(0)
     labels = set(y)
     print('Total number of classes: {}\n'.format(len(labels)))
     os.makedirs(class_split_path, exist_ok=True)
@@ -304,9 +306,16 @@ def sanity_check_split(X, y, ds_id, p=0.5, split_path=os.path.join('transfer', "
 
 
 def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.65, .15, .2],
-                              pretrain_proportion=0.5, downstream_train_data_limit = 1.0):
+                              pretrain_proportion=0.5, downstream_samples_per_class = 2):
     """pretrain proportion is used by multiclass as pretrain_proportion, by regression as quantile and by binary as current experiment number"""
+    #Let's not waste the data on validation set in case the dataset is small
+    if 'downstream' in stage:
+        datasplit[0] = datasplit[0] + datasplit[1]
+        datasplit[1] = 0.0
+
     np.random.seed(seed)
+    # torch.manual_seed(seed)
+    # random.seed(seed)
     #If ft-transformer data
     if type(ds_id) == str:
         cat_path = 'data/{}/C_{}.npy'.format(ds_id, 'train')
@@ -355,7 +364,7 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
     if len(X_full) > 1000000:#ds_id in [42728, 42705, 42729, 42571]:
         # import ipdb; ipdb.set_trace()
         #NEED TO RERUN ON LARGER DATASETS!
-        sample_idx = X_full.sample(n=1000000).index
+        sample_idx = X_full.sample(n=1000000, random_state = seed).index
         X_full, y_full = X_full.iloc[sample_idx], y_full.iloc[sample_idx]
         X_full.reset_index(drop=True, inplace=True)
         y_full.reset_index(drop=True, inplace=True)
@@ -363,7 +372,7 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
     if (task == 'binclass') and ('pretrain' in stage):
         if len(X_full) > 100000:  # ds_id in [42728, 42705, 42729, 42571]:
             # import ipdb; ipdb.set_trace()
-            sample_idx = X_full.sample(n=100000).index
+            sample_idx = X_full.sample(n=100000, random_state = seed).index
             X_full, y_full = X_full.iloc[sample_idx], y_full.iloc[sample_idx]
             X_full.reset_index(drop=True, inplace=True)
             y_full.reset_index(drop=True, inplace=True)
@@ -437,8 +446,18 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
     # split data into train/val/test
     X["Set"] = np.random.choice(["train", "valid", "test"], p = datasplit, size=(X.shape[0],))
     train_indices = X[X.Set=="train"].index
+    replacement_sampling = False
     if 'downstream' in stage:
-        train_indices = X[X.Set=="train"].sample(frac=downstream_train_data_limit).index#[:int(downstream_train_data_limit * len(train_indices))]
+        #switching to downstream_samples_per_class
+        if (downstream_samples_per_class*len(set(y)) <= len(X[X.Set=="train"])) or (ds_id in ['aloi']): #aloi is huge 1000 classes, don't wanna oversample
+            #sample without replacement
+            train_indices = X[X.Set=="train"].sample(n=downstream_samples_per_class*len(set(y)), random_state = seed).index
+            replacement_sampling = False
+        else:
+            #sample with replacement
+            train_indices = X[X.Set == "train"].sample(n=downstream_samples_per_class * len(set(y)),
+                                                       random_state=seed, replace = True).index
+            replacement_sampling = True
     valid_indices = X[X.Set=="valid"].index
     test_indices = X[X.Set=="test"].index
 
@@ -485,6 +504,7 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
     info['train_size'] = len(train_indices)
     info['val_size'] = len(valid_indices)
     info['test_size'] = len(test_indices)
+    info['replacement_sampling'] = replacement_sampling
     if task == 'multiclass':
         info['n_classes'] = len(set(y))
     if task == 'binclass':
@@ -494,16 +514,25 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
             info['n_classes'] = 1
 
     if len(numerical_columns) > 0:
+        #We have a zero size validation set, replace it with train (hack)
+        if 'downstream' in stage:
+            X_num_val = X_num_train
         N = {'train': X_num_train, 'val': X_num_val, 'test': X_num_test}
     else:
         N = None
 
     if len(categorical_columns) > 0:
+        # We have a zero size validation set, replace it with train (hack)
+        if 'downstream' in stage:
+            X_cat_val = X_cat_train
         C = {'train': X_cat_train, 'val': X_cat_val, 'test': X_cat_test}
     else:
         C = None
     # N = {'train': X_num_train, 'val': X_num_val, 'test': X_num_test}
     # C = {'train': X_cat_train, 'val': X_cat_val, 'test': X_cat_test}
+    # We have a zero size validation set, replace it with train (hack)
+    if 'downstream' in stage:
+        y_val = y_train
     y = {'train': y_train, 'val': y_val, 'test': y_test}
 
     if len(categorical_columns) > 0:

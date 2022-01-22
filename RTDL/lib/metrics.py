@@ -46,6 +46,7 @@ def calculate_metrics(
             )
 
         result = skm.classification_report(y, labels, output_dict=True)  # type: ignore[code]
+        result['balanced_accuracy'] = skm.balanced_accuracy_score(y, labels, adjusted=False)
         if task_type == util.BINCLASS:
             result['roc_auc'] = skm.roc_auc_score(y, probs)  # type: ignore[code]
             result['score'] = result['roc_auc']  # type: ignore[code]

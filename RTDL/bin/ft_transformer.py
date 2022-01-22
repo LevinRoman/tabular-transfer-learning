@@ -332,14 +332,18 @@ if __name__ == "__main__":
                                                   stage=args['transfer']['stage'],
                                                   datasplit=[.65, .15, .2],
                                                   pretrain_proportion=args['transfer']['pretrain_proportion'],
-                                                  downstream_train_data_limit=args['transfer']['downstream_train_data_fraction'])
+                                                  downstream_samples_per_class=args['transfer']['downstream_samples_per_class'])
     #####################################################################################
     # TRANSFER#
     #####################################################################################
+
+    stats['replacement_sampling'] = info['replacement_sampling']
     if args['data']['task'] == 'multiclass':
-        stats['num_classes'] = len(set(y['train']))
+        stats['num_classes_train'] = len(set(y['train']))
+        stats['num_classes_test'] = len(set(y['test']))
     else:
-        stats['num_classes'] = np.nan
+        stats['num_classes_train'] = np.nan
+        stats['num_classes_test'] = np.nan
 
     stats['num_training_samples'] = len(y['train'])
     if C is not None:
@@ -590,7 +594,7 @@ if __name__ == "__main__":
     timer.run()
     epoch_idx = 0
     #If doing head warmup
-    if args['transfer']['num_batch_warm_up_head'] > 0:
+    if args['transfer']['epochs_warm_up_head'] > 0:
         lib.freeze_parameters(model, ['head'])
         head_warmup_flag = True
     for epoch in stream.epochs(args['training']['n_epochs']):
@@ -604,9 +608,9 @@ if __name__ == "__main__":
             # Transfer: head warmup
             ###########
             #If doing head warmup
-            if args['transfer']['num_batch_warm_up_head'] > 0:
+            if args['transfer']['epochs_warm_up_head'] > 0:
                 if head_warmup_flag:
-                    if epoch_idx * epoch_size + cur_batch + 1 >= args['transfer']['num_batch_warm_up_head']:
+                    if epoch_idx >= args['transfer']['epochs_warm_up_head']:
                         #Stop warming up head after a predefined number of batches
                         lib.unfreeze_all_params(model)
                         head_warmup_flag = False
@@ -617,8 +621,8 @@ if __name__ == "__main__":
             ###########
             #Transfer: lr warmup
             ###########
-            if epoch_idx*epoch_size + cur_batch + 1 <= args['training']['num_batch_warm_up']:  # adjust LR for each training batch during warm up
-                lib.warm_up_lr(epoch_idx*epoch_size + cur_batch + 1, args['training']['num_batch_warm_up'], args['training']['lr'], optimizer)
+            # if epoch_idx*epoch_size + cur_batch + 1 <= args['training']['num_batch_warm_up']:  # adjust LR for each training batch during warm up
+            #     lib.warm_up_lr(epoch_idx*epoch_size + cur_batch + 1, args['training']['num_batch_warm_up'], args['training']['lr'], optimizer)
             ###########
             # Transfer: lr warmup
             ###########
@@ -646,6 +650,11 @@ if __name__ == "__main__":
         for k, v in metrics.items():
             training_log[k].append(v)
         progress.update(metrics[lib.VAL]['score'])
+
+        #Record metrics every 5 epochs on downstream tasks:
+        if 'downstream' in args['transfer']['stage']:
+            if epoch_idx % 5 == 0:
+                stats['Epoch_{}_metrics'.format(epoch_idx)], predictions = evaluate(lib.PARTS)
 
         if progress.success:
             print('New best epoch!')
