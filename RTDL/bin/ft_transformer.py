@@ -378,7 +378,6 @@ if __name__ == "__main__":
     X = tuple(None if x is None else lib.to_tensors(x) for x in X)
     Y = lib.to_tensors(Y)
 
-    # print('\n Y shape: {} \n'.format(Y.shape))
     device = lib.get_device()
     print('Device is {}'.format(device))
     if device.type != 'cpu':
@@ -389,13 +388,14 @@ if __name__ == "__main__":
     else:
         Y_device = Y
 
-    X_num, X_cat, num_nan_masks, cat_nan_masks = X
+    X_num, X_cat, _, _ = X
 
     del X
+    #do we think we might need to not convert to float here if binclass since we want multilabel?
     if not D.is_multiclass:
         Y_device = {k: v.float() for k, v in Y_device.items()}
 
-    '''Constructing loss function, model and optimizer'''
+    #Constructing loss function, model and optimizer
 
     train_size = D.size(lib.TRAIN)
     batch_size = args['training']['batch_size']
@@ -412,17 +412,6 @@ if __name__ == "__main__":
         else F.mse_loss
     )
     print('Loss fn is {}'.format(loss_fn))
-
-
-    # if 'pretrain' in args['transfer']['stage']:# == 'pretrain':
-    #     source_categories = lib.get_categories(X_cat)
-    #     source_categories_path = output / 'source_categories.pt'
-    #     torch.save(source_categories, source_categories_path)
-    # elif 'downstream' in args['transfer']['stage']:# == 'downstream':
-    #     source_categories_path = Path(args['transfer']['checkpoint_path']).parents[0] / 'source_categories.pt'
-    #     source_categories = torch.load(source_categories_path)
-    # else:
-    #     raise ValueError('Only pretrain or downstream stage is allowed')
 
     print('\n CATEGORIES:{}\n'.format(lib.get_categories_full_cat_data(full_cat_data_for_encoder)))
     model = Transformer(
@@ -444,7 +433,7 @@ if __name__ == "__main__":
         print('\n Loaded \n Missing keys:{}\n Unexpected keys:{}'.format(missing_keys, unexpected_keys))
         # except:
         #     model.load_state_dict(lib.remove_parallel(pretrain_checkpoint['model']))
-        # model = torchvision.models.resnet18(pretrained=False)
+
         if args['transfer']['use_mlp_head']:
             emb_dim = model.head.in_features
             out_dim = model.head.out_features
@@ -626,8 +615,8 @@ if __name__ == "__main__":
             ###########
             # Transfer: lr warmup
             ###########
-            random_state = zero.get_random_state()
-            zero.set_random_state(random_state)
+            #random_state = zero.get_random_state()
+            #zero.set_random_state(random_state)
 
             X_num_batch = None if X_num is None else X_num['train'][batch_idx].float()
             X_cat_batch = None if X_cat is None else X_cat['train'][batch_idx]

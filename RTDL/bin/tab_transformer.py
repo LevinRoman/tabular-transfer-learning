@@ -256,22 +256,41 @@ if __name__ == "__main__":
                                                                              datasplit=[.65, .15, .2],
                                                                              pretrain_proportion=args['transfer'][
                                                                                  'pretrain_proportion'],
-                                                                             downstream_train_data_limit=
+                                                                             downstream_samples_per_class=
                                                                              args['transfer'][
-                                                                                 'downstream_train_data_fraction'])
+                                                                                 'downstream_samples_per_class'])
     #####################################################################################
     # TRANSFER#
     #####################################################################################
+
+    stats['replacement_sampling'] = info['replacement_sampling']
+    if args['data']['task'] == 'multiclass':
+        stats['num_classes_train'] = len(set(y['train']))
+        stats['num_classes_test'] = len(set(y['test']))
+    else:
+        stats['num_classes_train'] = np.nan
+        stats['num_classes_test'] = np.nan
+
+    stats['num_training_samples'] = len(y['train'])
+    if C is not None:
+        stats['cat_features_no'] = C['train'].shape[1]
+    else:
+        stats['cat_features_no'] = 0
+    if N is not None:
+        stats['num_features_no'] = N['train'].shape[1]
+    else:
+        stats['num_features_no'] = 0
 
     D = lib.Dataset(N, C, y, info)
 
     X = D.build_X(
         normalization=args['data']['normalization'],
-        num_nan_policy='mean',   # replace missing values in numerical features by mean
-        cat_nan_policy='new',    # replace missing values in categorical features by new values
+        num_nan_policy='mean',  # replace missing values in numerical features by mean
+        cat_nan_policy='new',  # replace missing values in categorical features by new values
         cat_policy=args['data'].get('cat_policy', 'indices'),
         cat_min_frequency=args['data'].get('cat_min_frequency', 0.0),
         seed=args['seed'],
+        full_cat_data_for_encoder=full_cat_data_for_encoder
     )
 
 
@@ -280,10 +299,11 @@ if __name__ == "__main__":
     zero.set_randomness(args['seed'])
 
     Y, y_info = D.build_y(args['data'].get('y_policy'))
+
     lib.dump_pickle(y_info, output / 'y_info.pickle')
     X = tuple(None if x is None else lib.to_tensors(x) for x in X)
-
     Y = lib.to_tensors(Y)
+
     device = lib.get_device()
 
     if device.type != 'cpu':
@@ -294,8 +314,7 @@ if __name__ == "__main__":
     else:
         Y_device = Y
 
-    X_num, X_cat, num_nan_masks, cat_nan_masks = X
-
+    X_num, X_cat, _, _ = X
 
     if X_num is None:
         # this is hardcoded for saint since it needs numerical features and nan mask as input even when there are no
@@ -305,10 +324,11 @@ if __name__ == "__main__":
                  'test': torch.empty(X_cat['test'].shape[0], 0).long().to(device)}
 
     del X
+    # do we think we might need to not convert to float here if binclass since we want multilabel?
     if not D.is_multiclass:
         Y_device = {k: v.float() for k, v in Y_device.items()}
 
-    '''Constructing loss function, model and optimizer'''
+    #Constructing loss function, model and optimizer
 
     train_size = D.size(lib.TRAIN)
     batch_size = args['training']['batch_size']
@@ -324,9 +344,8 @@ if __name__ == "__main__":
         if D.is_multiclass
         else F.mse_loss
     )
-
     print('Loss fn is {}'.format(loss_fn))
-
+    #FIX CATEGORICAL THINGS! UNDERSTAND OUTPUT DIM!
     model = TabTransformer(
         categories = lib.get_categories_full_cat_data(full_cat_data_for_encoder),#lib.get_categories(X_cat),
         num_continuous = X_num['train'].shape[1],

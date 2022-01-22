@@ -8,7 +8,7 @@ parser.add_argument('--model', type = str, default = 'ft_transformer', help = 'm
 parser.add_argument('--task', default = 'multiclass_transfer', type = str, help = 'task (e.g. multiclass_transfer, binclass_transfer, sanity_check_transfer)')
 parser.add_argument('--seeds', default=['0'], type=str, nargs='+')
 parser.add_argument('--experiments', default=['default'], type=str, nargs='+')
-parser.add_argument('--transfer_setups', default=['head_fine_tune', 'mlp_head_fine_tune', 'full_fine_tune', 'full_mlp_head_fine_tune', 'full_mlp_head_fine_tune_big_lr', 'full_mlp_head_fine_tune_big_lr'], type=str, nargs='+')
+parser.add_argument('--transfer_setups', default=['head_fine_tune', 'mlp_head_fine_tune', 'full_fine_tune', 'full_mlp_head_fine_tune', 'full_fine_tune_big_lr', 'full_mlp_head_fine_tune_big_lr'], type=str, nargs='+')
 parser.add_argument('--no_transfer_setups', default=['original_model'], type=str, nargs='+')
 parser.add_argument('--data_fracs', default=['250', '50', '10', '5', '2'], type=str, nargs='+')
 parser.add_argument('--old_string', type = str, help = 'new dataset id')
