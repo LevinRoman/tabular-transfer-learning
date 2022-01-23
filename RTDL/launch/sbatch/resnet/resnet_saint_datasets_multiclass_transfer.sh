@@ -8,7 +8,7 @@ declare -a StringArray=("188" "1596" "4541" "40664" "40685" "40687" "40975" "411
 # Iterate the string array using for loop
 for data in ${StringArray[@]}; do
     #copy the config
-    python scripts/replace_dataset_id_in_config.py --new_id $data --old_id 1483 --model resnet
+    python scripts/replace_dataset_id_in_config.py --new_id $data --old_id 1483 --model resnet --do_destructive_danger
 
     #Pretrain
     python bin/resnet.py output/${data}/resnet/multiclass_transfer/pretrain/default/0.toml -f

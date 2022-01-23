@@ -13,7 +13,7 @@ normalization = 'quantile'
 [transfer]
 stage = 'downstream'
 load_checkpoint = false
-checkpoint_path = '/cmlscratch/vcherepa/rilevin/tabular/tabular-transfer-learning/tabular-transfer-learning/RTDL/output/1483/ft_transformer/multiclass_transfer/pretrain/default/0/checkpoint.pt'
+checkpoint_path = '/cmlscratch/vcherepa/rilevin/tabular/tabular-transfer-learning/tabular-transfer-learning/RTDL/output/1483/resnet/multiclass_transfer/pretrain/default/0/checkpoint.pt'
 pretrain_proportion = 0.5
 downstream_samples_per_class = 10#moved on to using samples per class
 freeze_feature_extractor = false
@@ -24,7 +24,7 @@ head_lr = nan
 
 [model]
 activation = 'relu'
-d = 164
+d = 200
 d_embedding = 128
 d_hidden_factor = 3
 hidden_dropout = 0.2
@@ -33,7 +33,7 @@ normalization = 'batchnorm'
 residual_dropout = 0.2
 
 [training]
-batch_size = 128
+batch_size = 256
 eval_batch_size = 8192
 lr = 0.0001
 lr_n_decays = 0

@@ -6,10 +6,10 @@ declare -a StringArray=("helena" "aloi" "covtype" "jannis")
 # Iterate the string array using for loop
 for data in ${StringArray[@]}; do
     #copy the config
-    python scripts/replace_dataset_id_in_config.py --new_id ${data} --add_apostrophe --old_id 1483 --model resnet
+    python scripts/replace_dataset_id_in_config.py --new_id ${data} --add_apostrophe --old_id 1483 --model resnet --do_destructive_danger
 
     #Pretrain
-    python bin/resnet.py output/${data}/resnet/multiclass_transfer/pretrain/default/0.toml
+    python bin/resnet.py output/${data}/resnet/multiclass_transfer/pretrain/default/0.toml -f
 
     ##################################
     #Samples per class: 250

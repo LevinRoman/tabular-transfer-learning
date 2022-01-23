@@ -356,7 +356,7 @@ if __name__ == "__main__":
         else F.mse_loss
     )
     print('Loss fn is {}'.format(loss_fn))
-    #FIX CATEGORICAL THINGS! UNDERSTAND OUTPUT DIM!
+
     model = TabTransformer(
         categories = lib.get_categories_full_cat_data(full_cat_data_for_encoder),#lib.get_categories(X_cat),
         num_continuous = X_num['train'].shape[1],
@@ -372,6 +372,7 @@ if __name__ == "__main__":
         attn_dropout = args['model']['attn_dropout'],
         ff_dropout = args['model']['ff_dropout']
     ).to(device)
+
 
     head_name, head_module = list(model.named_modules())[-1]#list(model.named_parameters())[-1][0].replace('.bias', '')
     if 'head' in args['transfer']['layers_to_fine_tune']:
@@ -393,8 +394,8 @@ if __name__ == "__main__":
         #     model.load_state_dict(lib.remove_parallel(pretrain_checkpoint['model']))
 
         if args['transfer']['use_mlp_head']:
-            emb_dim = head_module#model.head.in_features
-            out_dim = head_module#model.head.out_features
+            emb_dim = head_module.in_features#model.head.in_features
+            out_dim = head_module.out_features#model.head.out_features
             model.head = nn.Sequential(
                 nn.Linear(emb_dim, 200),
                 nn.ReLU(),

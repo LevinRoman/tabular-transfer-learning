@@ -24,7 +24,7 @@ head_lr = nan
 
 [model]
 activation = 'relu'
-d = 164
+d = 200
 d_embedding = 128
 d_hidden_factor = 3
 hidden_dropout = 0.2

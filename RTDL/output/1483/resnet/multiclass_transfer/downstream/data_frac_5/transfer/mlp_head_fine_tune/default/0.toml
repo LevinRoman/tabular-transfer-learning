@@ -24,7 +24,7 @@ head_lr = nan
 
 [model]
 activation = 'relu'
-d = 164
+d = 200
 d_embedding = 128
 d_hidden_factor = 3
 hidden_dropout = 0.2
@@ -33,7 +33,7 @@ normalization = 'batchnorm'
 residual_dropout = 0.2
 
 [training]
-batch_size = 128
+batch_size = 256
 eval_batch_size = 8192
 lr = 0.0001 #could be 1e-5 -- 10x smaller for transfer
 lr_n_decays = 0
