@@ -392,7 +392,7 @@ if __name__ == "__main__":
 
         # Record metrics every 5 epochs on downstream tasks:
         if 'downstream' in args['transfer']['stage']:
-            if epoch_idx % 5 == 0:
+            if epoch_idx % 1 == 0:
                 stats['Epoch_{}_metrics'.format(epoch_idx)], predictions = evaluate(lib.PARTS)
 
         if progress.success:
