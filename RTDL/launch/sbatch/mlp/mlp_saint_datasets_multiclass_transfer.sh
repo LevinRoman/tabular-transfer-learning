@@ -1,15 +1,17 @@
 #!/bin/bash
 
 # Declare an array of string with type
-declare -a StringArray=("helena" "aloi" "covtype" "jannis")
-
+declare -a StringArray=("188" "1596" "4541" "40664" "40685" "40687" "40975" "41166" "41169" "42734") #also 188, 1596
+#4541 is 3 class
+#42734 has Nans
+#41166?
 # Iterate the string array using for loop
 for data in ${StringArray[@]}; do
     #copy the config
-    python scripts/replace_dataset_id_in_config.py --new_id ${data} --add_apostrophe --old_id 1483 --model mlp --do_destructive_danger
+    python scripts/replace_dataset_id_in_config.py --new_id $data --old_id 1483 --model mlp --do_destructive_danger
 
     #Pretrain
-    python bin/mlp.py output/${data}/mlp/multiclass_transfer/pretrain/default/0.toml
+    python bin/mlp.py output/${data}/mlp/multiclass_transfer/pretrain/default/0.toml -f
 
     ##################################
     #Samples per class: 250

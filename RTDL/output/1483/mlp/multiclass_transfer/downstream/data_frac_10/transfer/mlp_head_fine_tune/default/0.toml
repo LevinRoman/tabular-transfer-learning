@@ -25,6 +25,7 @@ head_lr = nan
 [model]
 d_layers = [ 300, 200, 300 ]
 dropout = 0.2
+d_embedding = 32
 
 [training]
 batch_size = 128

@@ -48,7 +48,7 @@ def get_accuracy(dataset, model, task, stage, data_frac, if_transfer, setup, exp
     # print(stats['Epoch_5_metrics']['test']['balanced_accuracy'])
     balanced_accuracy = []
     for epoch in range(0, n_epochs, step):
-        balanced_accuracy.append(stats['Epoch_{}_metrics'.format(epoch)]['test']['balanced_accuracy'])
+        balanced_accuracy.append(stats['Epoch_{}_metrics'.format(epoch)]['test']['adjusted_balanced_accuracy'])
     return balanced_accuracy, stats['num_classes_test'], stats['num_classes_train'], stats['replacement_sampling']
 
 def build_score_table(args):

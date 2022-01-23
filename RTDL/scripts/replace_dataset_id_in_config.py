@@ -13,6 +13,7 @@ parser.add_argument('--transfer_setups', default=['head_fine_tune', 'mlp_head_fi
 parser.add_argument('--no_transfer_setups', default=['original_model'], type=str, nargs='+')
 parser.add_argument('--data_fracs', default=['250', '50', '10', '5', '2'], type=str, nargs='+')
 parser.add_argument('--add_apostrophe', action='store_true')
+parser.add_argument('--do_destructive_danger', action='store_true')
 args = parser.parse_args()
 
 if args.new_id is None:
@@ -20,10 +21,13 @@ if args.new_id is None:
 
 os.makedirs('output/{}/{}'.format(args.new_id, args.model), exist_ok = True)
 
-assert not os.path.exists('output/{}/{}/{}'.format(args.new_id, args.model, args.task)), 'Model/task directory exists!'
-
-os.system("cp -r output/{}/{}/{} output/{}/{}/{}".format(args.old_id, args.model, args.task, args.new_id, args.model, args.task))
-
+if not args.do_destructive_danger:
+    assert not os.path.exists('output/{}/{}/{}'.format(args.new_id, args.model, args.task)), 'Model/task directory exists!'
+    os.system("cp -rv output/{}/{}/{} output/{}/{}/{}".format(args.old_id, args.model, args.task, args.new_id, args.model, args.task))
+else:
+    os.system(
+        "cp -Trv output/{}/{}/{} output/{}/{}/{}".format(args.old_id, args.model, args.task, args.new_id, args.model,
+                                                       args.task))
 
 if args.add_apostrophe:
     replace_id = "'{}'".format(args.new_id)

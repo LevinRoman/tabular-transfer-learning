@@ -13,6 +13,7 @@ parser.add_argument('--no_transfer_setups', default=['original_model'], type=str
 parser.add_argument('--data_fracs', default=['250', '50', '10', '5', '2'], type=str, nargs='+')
 parser.add_argument('--old_string', type = str, help = 'new dataset id')
 parser.add_argument('--new_string', type = str, help = 'new dataset id')
+parser.add_argument('--do_destructive_danger', action='store_true')
 args = parser.parse_args()
 
 if args.data_id is None:
