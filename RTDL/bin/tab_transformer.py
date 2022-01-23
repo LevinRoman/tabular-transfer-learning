@@ -154,23 +154,27 @@ class TabTransformer(nn.Module):
         ff_dropout = 0.
     ):
         super().__init__()
-        assert all(map(lambda n: n > 0, categories)), 'number of each category must be positive'
+        # assert all(map(lambda n: n > 0, categories)), 'number of each category must be positive'
+        self.categories = categories
 
-        # categories related calculations
+        if self.categories is not None:
+            # categories related calculations
 
-        self.num_categories = len(categories)
-        self.num_unique_categories = sum(categories)
+            self.num_categories = len(categories)
+            self.num_unique_categories = sum(categories)
 
-        # create category embeddings table
+            # create category embeddings table
 
-        self.num_special_tokens = num_special_tokens
-        total_tokens = self.num_unique_categories + num_special_tokens
+            self.num_special_tokens = num_special_tokens
+            total_tokens = self.num_unique_categories + num_special_tokens
 
-        # for automatically offsetting unique category ids to the correct position in the categories embedding table
+            # for automatically offsetting unique category ids to the correct position in the categories embedding table
 
-        categories_offset = F.pad(torch.tensor(list(categories)), (1, 0), value = num_special_tokens)
-        categories_offset = categories_offset.cumsum(dim = -1)[:-1]
-        self.register_buffer('categories_offset', categories_offset)
+            categories_offset = F.pad(torch.tensor(list(categories)), (1, 0), value = num_special_tokens)
+            categories_offset = categories_offset.cumsum(dim = -1)[:-1]
+            self.register_buffer('categories_offset', categories_offset)
+        else:
+            self.num_categories = 0
 
         # continuous
 
@@ -183,15 +187,16 @@ class TabTransformer(nn.Module):
 
         # transformer
 
-        self.transformer = Transformer(
-            num_tokens = total_tokens,
-            dim = dim,
-            depth = depth,
-            heads = heads,
-            dim_head = dim_head,
-            attn_dropout = attn_dropout,
-            ff_dropout = ff_dropout
-        )
+        if self.categories is not None:
+            self.transformer = Transformer(
+                num_tokens = total_tokens,
+                dim = dim,
+                depth = depth,
+                heads = heads,
+                dim_head = dim_head,
+                attn_dropout = attn_dropout,
+                ff_dropout = ff_dropout
+            )
 
         # mlp to logits
 
@@ -204,11 +209,12 @@ class TabTransformer(nn.Module):
         self.mlp = MLP(all_dimensions, act = mlp_act)
 
     def forward(self, x_categ, x_cont):
-        assert x_categ.shape[-1] == self.num_categories, f'you must pass in {self.num_categories} values for your categories input'
-        x_categ += self.categories_offset.type_as(x_categ)
-        x = self.transformer(x_categ)
+        if self.categories is not None:
+            assert x_categ.shape[-1] == self.num_categories, f'you must pass in {self.num_categories} values for your categories input'
+            x_categ += self.categories_offset.type_as(x_categ)
+            x = self.transformer(x_categ)
 
-        flat_categ = x.flatten(1)
+            flat_categ = x.flatten(1)
 
         assert x_cont.shape[1] == self.num_continuous, f'you must pass in {self.num_continuous} values for your continuous input'
 
@@ -216,11 +222,16 @@ class TabTransformer(nn.Module):
         #    mean, std = self.continuous_mean_std.unbind(dim = -1)
         #    x_cont = (x_cont - mean) / std
 
-        if x_cont.shape[1]!=0:
+        if (x_cont.shape[1]!=0) and (self.categories is not None):
             normed_cont = self.norm(x_cont)
             x = torch.cat((flat_categ, normed_cont), dim = -1)
-        else:
+        elif (x_cont.shape[1]==0) and (self.categories is not None):
             x = flat_categ
+        elif (x_cont.shape[1]!=0) and (self.categories is None):
+            normed_cont = self.norm(x_cont)
+            x = normed_cont
+        else:
+            raise ValueError('neither cat nor cont features exist')
         return self.mlp(x)
 
 
@@ -349,45 +360,60 @@ if __name__ == "__main__":
     model = TabTransformer(
         categories = lib.get_categories_full_cat_data(full_cat_data_for_encoder),#lib.get_categories(X_cat),
         num_continuous = X_num['train'].shape[1],
-        dim = 8,
-        depth =  1,
-        heads = 1,
-        dim_head = 16,
-        dim_out = 1,
-        mlp_hidden_mults = (4, 2),
+        dim = args['model']['dim'],
+        depth = args['model']['depth'],
+        heads = args['model']['heads'],
+        dim_head = args['model']['dim_head'],
+        dim_out = D.info['n_classes'] if D.is_multiclass or D.is_binclass else 1,
+        mlp_hidden_mults = tuple(args['model']['mlp_hidden_mults']),
         mlp_act = None,
-        num_special_tokens = 2,
+        num_special_tokens = 0,
         continuous_mean_std = None,
-        attn_dropout = 0.,
-        ff_dropout = 0.
+        attn_dropout = args['model']['attn_dropout'],
+        ff_dropout = args['model']['ff_dropout']
     ).to(device)
 
+    head_name, head_module = list(model.named_modules())[-1]#list(model.named_parameters())[-1][0].replace('.bias', '')
+    if 'head' in args['transfer']['layers_to_fine_tune']:
+        head_idx = args['transfer']['layers_to_fine_tune'].index('head')
+        args['transfer']['layers_to_fine_tune'][head_idx] = head_name
+    print(args['transfer']['layers_to_fine_tune'])
+    print(head_name)
     #####################################################################################
     # TRANSFER#
     #####################################################################################
     if ('downstream' in args['transfer']['stage']) and (args['transfer']['load_checkpoint']):
         print('Loading checkpoint, doing transfer learning')
         pretrain_checkpoint = torch.load(args['transfer']['checkpoint_path'])
-        # try:
-        # FAILS HERE CURRENTLY BECAUSE OF KEYERROR LOADING PRETRAINED MODEL
-        # NEED DIFFERENT LOAD STATE DICT
-        pretrained_feature_extractor_dict = {k: v for k, v in pretrain_checkpoint['model'].items() if 'head' not in k}
+
+        pretrained_feature_extractor_dict = {k: v for k, v in pretrain_checkpoint['model'].items() if head_name not in k}
         missing_keys, unexpected_keys = model.load_state_dict(pretrained_feature_extractor_dict, strict=False)
         print('\n Loaded \n Missing keys:{}\n Unexpected keys:{}'.format(missing_keys, unexpected_keys))
         # except:
         #     model.load_state_dict(lib.remove_parallel(pretrain_checkpoint['model']))
+
+        if args['transfer']['use_mlp_head']:
+            emb_dim = head_module#model.head.in_features
+            out_dim = head_module#model.head.out_features
+            model.head = nn.Sequential(
+                nn.Linear(emb_dim, 200),
+                nn.ReLU(),
+                nn.Linear(200, 200),
+                nn.ReLU(),
+                nn.Linear(200, out_dim)).to(device)
 
         # Freeze feature extractor
         if args['transfer']['freeze_feature_extractor']:
             for name, param in model.named_parameters():
                 print(name, param.shape)
                 if not any(x in name for x in args['transfer']['layers_to_fine_tune']):
-                    # if 'head' not in name:
+                    # if head_name not in name:
                     param.requires_grad = False
                 else:
                     print('\n Unfrozen param {}\n'.format(name))
     else:
         print('No transfer learning')
+
     #####################################################################################
     # TRANSFER#
     #####################################################################################
@@ -401,25 +427,34 @@ if __name__ == "__main__":
         model = nn.DataParallel(model)
     stats['n_parameters'] = lib.get_n_parameters(model)
 
-    def needs_wd(name):
-        return all(x not in name for x in ['tokenizer', '.norm', '.bias'])
-
-    # TODO: need to change this if we want to not apply weight decay to some groups of parameters like ft_transformer
-
-    parameters_with_wd = [v for k, v in model.named_parameters() if needs_wd(k)]
-    parameters_without_wd = [v for k, v in model.named_parameters() if not needs_wd(k)]
-    optimizer = lib.make_optimizer(
-        args['training']['optimizer'],
-        (
-            [
-                {'params': parameters_with_wd},
-                {'params': parameters_without_wd, 'weight_decay': 0.0},
-            ]
-        ),
-        args['training']['lr'],
-        args['training']['weight_decay'],
-    )
-
+    ###############################################################
+    # TRANSFER: differential learning rates for head and feat extr
+    ###############################################################
+    print('\n\n HEAD LR {}: {}\n\n'.format(args['transfer']['head_lr'], np.isnan(args['transfer']['head_lr'])))
+    if ('downstream' in args['transfer']['stage']) and (not np.isnan(args['transfer']['head_lr'])):
+        head_parameters = [v for k, v in model.named_parameters() if head_name in k]
+        backbone_parameters = [v for k, v in model.named_parameters() if head_name not in k]
+        optimizer = lib.make_optimizer(
+            args['training']['optimizer'],
+            (
+                [
+                    {'params': backbone_parameters},
+                    {'params': head_parameters, 'lr': args['transfer']['head_lr']}
+                ]
+            ),
+            args['training']['lr'],
+            args['training']['weight_decay'],
+        )
+    else:
+        optimizer = lib.make_optimizer(
+            args['training']['optimizer'],
+            model.parameters(),
+            args['training']['lr'],
+            args['training']['weight_decay'],
+        )
+    ###############################################################
+    # TRANSFER: differential learning rates for head and feat extr
+    ###############################################################
 
     stream = zero.Stream(lib.IndexLoader(train_size, batch_size, True, device))
     progress = zero.ProgressTracker(args['training']['patience'])
@@ -450,8 +485,8 @@ if __name__ == "__main__":
         for part in parts:
             predictions[part] = torch.tensor([])
             for batch_idx in lib.IndexLoader(D.size(part), eval_batch_size, False, device):
-                X_num_batch = X_num[part][batch_idx].float()
-                X_cat_batch = X_cat[part][batch_idx]
+                X_num_batch = torch.empty(len(batch_idx), 0) if X_num is None else X_num[part][batch_idx].float()
+                X_cat_batch = torch.empty(len(batch_idx), 0) if X_cat is None else X_cat[part][batch_idx]
 
                 model_output = model(X_cat_batch, X_num_batch)
                 predictions[part] = torch.cat([predictions[part], model_output.cpu()])
@@ -491,25 +526,54 @@ if __name__ == "__main__":
 
     # %%
     timer.run()
+    epoch_idx = 0
+    # If doing head warmup
+    if args['transfer']['epochs_warm_up_head'] > 0:
+        lib.freeze_parameters(model, [head_name])
+        head_warmup_flag = True
     for epoch in stream.epochs(args['training']['n_epochs']):
         print_epoch_info()
 
         model.train()
         epoch_losses = []
+        cur_batch = 0
         for batch_idx in epoch:
 
-            random_state = zero.get_random_state()
-            zero.set_random_state(random_state)
+            ###########
+            # Transfer: head warmup
+            ###########
+            # If doing head warmup
+            if args['transfer']['epochs_warm_up_head'] > 0:
+                if head_warmup_flag:
+                    if epoch_idx >= args['transfer']['epochs_warm_up_head']:
+                        # Stop warming up head after a predefined number of batches
+                        lib.unfreeze_all_params(model)
+                        head_warmup_flag = False
+            ###########
+            # Transfer: head warmup
+            ###########
+
+            ###########
+            # Transfer: lr warmup
+            ###########
+            # if epoch_idx*epoch_size + cur_batch + 1 <= args['training']['num_batch_warm_up']:  # adjust LR for each training batch during warm up
+            #     lib.warm_up_lr(epoch_idx*epoch_size + cur_batch + 1, args['training']['num_batch_warm_up'], args['training']['lr'], optimizer)
+            ###########
+            # Transfer: lr warmup
+            ###########
+            # random_state = zero.get_random_state()
+            # zero.set_random_state(random_state)
 
             X_num_batch = torch.empty(len(batch_idx), 0) if X_num is None else X_num['train'][batch_idx].float()
             X_cat_batch =  torch.empty(len(batch_idx), 0) if X_cat is None else X_cat['train'][batch_idx]
 
             optimizer.zero_grad()
             model_output = model(X_cat_batch, X_num_batch)
-            loss = loss_fn(model_output.squeeze(), Y_device['train'][batch_idx])
+            loss = loss_fn(model_output, Y_device['train'][batch_idx])
             loss.backward()
             optimizer.step()
             epoch_losses.append(loss.detach())
+            cur_batch += 1
 
         epoch_losses = torch.stack(epoch_losses).tolist()
         training_log[lib.TRAIN].extend(epoch_losses)
@@ -519,6 +583,11 @@ if __name__ == "__main__":
         for k, v in metrics.items():
             training_log[k].append(v)
         progress.update(metrics[lib.VAL]['score'])
+
+        # Record metrics every 5 epochs on downstream tasks:
+        if 'downstream' in args['transfer']['stage']:
+            if epoch_idx % 5 == 0:
+                stats['Epoch_{}_metrics'.format(epoch_idx)], predictions = evaluate(lib.PARTS)
 
         if progress.success:
             print('New best epoch!')
@@ -530,6 +599,7 @@ if __name__ == "__main__":
 
         elif progress.fail: # stopping criterion is based on val accuracy (see patience arg in args)
             break
+        epoch_idx += 1
 
     # %%
     print('\nRunning the final evaluation...')

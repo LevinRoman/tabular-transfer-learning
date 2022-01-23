@@ -408,7 +408,7 @@ if __name__ == "__main__":
             X_cat_batch = None if X_cat is None else X_cat['train'][batch_idx]
 
             optimizer.zero_grad()
-            print(X_num_batch.shape, X_cat_batch.shape)
+
             model_output = model(X_num_batch, X_cat_batch)
             loss = loss_fn(model_output, Y_device['train'][batch_idx])
             loss.backward()
