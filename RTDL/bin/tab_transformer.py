@@ -396,6 +396,7 @@ if __name__ == "__main__":
         if args['transfer']['use_mlp_head']:
             emb_dim = head_module.in_features#model.head.in_features
             out_dim = head_module.out_features#model.head.out_features
+            #PROBLEM HERE!!!
             model.head = nn.Sequential(
                 nn.Linear(emb_dim, 200),
                 nn.ReLU(),

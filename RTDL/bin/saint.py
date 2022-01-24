@@ -555,7 +555,8 @@ if __name__ == "__main__":
     train_size = D.size(lib.TRAIN)
     batch_size = args['training']['batch_size']
     epoch_size = stats['epoch_size'] = math.ceil(train_size / batch_size)
-    eval_batch_size = args['training']['eval_batch_size']
+    #Hardcoded for Saint because of inter-sample attention
+    eval_batch_size = batch_size#args['training']['eval_batch_size']
     print('Train size is {}, batch_size is {}, epoch_size is {}, eval_batch_size is {}'.format(train_size, batch_size,
                                                                                                epoch_size, eval_batch_size))
 
@@ -571,7 +572,7 @@ if __name__ == "__main__":
 
     model = SAINT(
         categories = lib.get_categories_full_cat_data(full_cat_data_for_encoder),#lib.get_categories(X_cat),
-        num_continuous = X_num['train'].shape[1],
+        num_continuous = X_num['train'].shape[1] if X_num is not None else 0,
         dim = args['model']['embed_dim'],
         dim_out = 1,
         depth = args['model']['depth'],
@@ -586,7 +587,7 @@ if __name__ == "__main__":
         use_cls = args['model']['use_cls']
     ).to(device)
 
-    head_name, head_module = list(model.named_modules())[-1]#list(model.named_parameters())[-1][0].replace('.bias', '')
+    head_name, head_module = 'mlpfory', model.mlpfory#list(model.named_modules())[-1]#list(model.named_parameters())[-1][0].replace('.bias', '')
     if 'head' in args['transfer']['layers_to_fine_tune']:
         head_idx = args['transfer']['layers_to_fine_tune'].index('head')
         args['transfer']['layers_to_fine_tune'][head_idx] = head_name
@@ -607,9 +608,9 @@ if __name__ == "__main__":
         #     model.load_state_dict(lib.remove_parallel(pretrain_checkpoint['model']))
 
         if args['transfer']['use_mlp_head']:
-            emb_dim = head_module.in_features  # model.head.in_features
-            out_dim = head_module.out_features  # model.head.out_features
-            model.head = nn.Sequential(
+            emb_dim = model.dim#head_module.in_features  # model.head.in_features
+            out_dim = D.info['n_classes'] if D.is_multiclass or D.is_binclass else 1#model.y_dim#head_module.out_features  # model.head.out_features
+            model.mlpfory = nn.Sequential(
                 nn.Linear(emb_dim, 200),
                 nn.ReLU(),
                 nn.Linear(200, 200),
@@ -711,7 +712,7 @@ if __name__ == "__main__":
                 X_cat_batch = torch.empty(len(batch_idx), 0, device=device) if X_cat is None else X_cat[part][batch_idx]
                 X_num_mask_batch = torch.empty(len(batch_idx), 0, device=device).long() if X_num is None else num_nan_masks[part][
                     batch_idx]
-                X_cat_mask_batch = torch.empty(len(batch_idx), 0, device=device) if X_cat is None else cat_nan_masks[part][
+                X_cat_mask_batch = torch.empty(len(batch_idx), 0, device=device).long() if X_cat is None else cat_nan_masks[part][
                     batch_idx]
 
 
@@ -795,8 +796,8 @@ if __name__ == "__main__":
 
             X_num_batch = torch.empty(len(batch_idx), 0, device=device) if X_num is None else X_num['train'][batch_idx].float()
             X_cat_batch =  torch.empty(len(batch_idx), 0, device=device) if X_cat is None else X_cat['train'][batch_idx]
-            X_num_mask_batch =  torch.empty(len(batch_idx), 0, device=device) if X_num is None else num_nan_masks['train'][batch_idx]
-            X_cat_mask_batch =  torch.empty(len(batch_idx), 0, device=device) if X_cat is None else cat_nan_masks['train'][batch_idx]
+            X_num_mask_batch =  torch.empty(len(batch_idx), 0, device=device).long() if X_num is None else num_nan_masks['train'][batch_idx]
+            X_cat_mask_batch =  torch.empty(len(batch_idx), 0, device=device).long() if X_cat is None else cat_nan_masks['train'][batch_idx]
 
             optimizer.zero_grad()
             model_output = model(X_cat_batch, X_num_batch, X_cat_mask_batch, X_num_mask_batch)

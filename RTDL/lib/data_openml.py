@@ -361,10 +361,10 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
     if y_full.dtype.name == "category":
         y_full = y_full.apply(str).astype('object')
 
-    if len(X_full) > 1000000:#ds_id in [42728, 42705, 42729, 42571]:
+    if len(X_full) > 100000:#ds_id in [42728, 42705, 42729, 42571]:
         # import ipdb; ipdb.set_trace()
         #NEED TO RERUN ON LARGER DATASETS!
-        sample_idx = X_full.sample(n=1000000, random_state = seed).index
+        sample_idx = X_full.sample(n=100000, random_state = seed).index
         X_full, y_full = X_full.iloc[sample_idx], y_full.iloc[sample_idx]
         X_full.reset_index(drop=True, inplace=True)
         y_full.reset_index(drop=True, inplace=True)
