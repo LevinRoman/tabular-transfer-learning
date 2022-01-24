@@ -307,7 +307,9 @@ def sanity_check_split(X, y, ds_id, p=0.5, split_path=os.path.join('transfer', "
 
 def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.65, .15, .2],
                               pretrain_proportion=0.5, downstream_samples_per_class = 2):
-    """pretrain proportion is used by multiclass as pretrain_proportion, by regression as quantile and by binary as current experiment number"""
+    """pretrain proportion is used by multiclass as pretrain_proportion, by regression as quantile and by binary as current experiment number
+    downstream_samples_per_class should be 2 5 10 50 250 for multiclass and 10 25 50 250 1250 for regression as data on downstream
+    """
     #Let's not waste the data on validation set in case the dataset is small
     if 'downstream' in stage:
         datasplit[0] = datasplit[0] + datasplit[1]
@@ -449,15 +451,21 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
     replacement_sampling = False
     if 'downstream' in stage:
         #switching to downstream_samples_per_class
-        if (downstream_samples_per_class*len(set(y)) <= len(X[X.Set=="train"])) or (ds_id in ['aloi']): #aloi is huge 1000 classes, don't wanna oversample
+        if (downstream_samples_per_class*len(set(y)) <= len(X[X.Set=="train"])):# or (ds_id in ['aloi']): #aloi is huge 1000 classes, don't wanna oversample
             #sample without replacement
-            train_indices = X[X.Set=="train"].sample(n=downstream_samples_per_class*len(set(y)), random_state = seed).index
+            if (task == 'multiclass') or (task == 'binclass'):
+                train_indices = X[X.Set=="train"].sample(n=downstream_samples_per_class*len(set(y)), random_state = seed).index
+            elif task == 'regression':
+                train_indices = X[X.Set == "train"].sample(n=downstream_samples_per_class * 1, random_state=seed).index
+            else:
+                raise ValueError('Task should be multiclass, binclass or regression. You are using {}'.format(task))
             replacement_sampling = False
         else:
+            raise NotImplementedError('Sampling with replacement is probably not helpful')
             #sample with replacement
-            train_indices = X[X.Set == "train"].sample(n=downstream_samples_per_class * len(set(y)),
-                                                       random_state=seed, replace = True).index
-            replacement_sampling = True
+            # train_indices = X[X.Set == "train"].sample(n=downstream_samples_per_class * len(set(y)),
+            #                                            random_state=seed, replace = True).index
+            # replacement_sampling = True
     valid_indices = X[X.Set=="valid"].index
     test_indices = X[X.Set=="test"].index
 
