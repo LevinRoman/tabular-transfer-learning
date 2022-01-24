@@ -38,7 +38,7 @@ seed = 0
 	num_batch_warm_up = 0
 
 [optimization.options]
-n_trials = 50
+n_trials = 30
 
 [optimization.sampler]
 seed = 0

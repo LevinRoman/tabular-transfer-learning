@@ -33,7 +33,7 @@ seed = 0
 	head_lr = nan
 
 [optimization.options]
-n_trials = 50
+n_trials = 30
 
 [optimization.sampler]
 seed = 0

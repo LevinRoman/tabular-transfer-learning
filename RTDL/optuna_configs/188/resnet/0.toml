@@ -37,7 +37,7 @@ seed = 0
 
 
 [optimization.options]
-n_trials = 50
+n_trials = 30
 
 [optimization.sampler]
 seed = 0
