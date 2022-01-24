@@ -52,7 +52,7 @@ def calculate_metrics(
             result['roc_auc'] = skm.roc_auc_score(y, probs)  # type: ignore[code]
             result['score'] = result['roc_auc']  # type: ignore[code]
         else:
-            result['score'] = result['accuracy']  # type: ignore[code]
+            result['score'] = result['balanced_accuracy']#result['accuracy']  # type: ignore[code]
     return result  # type: ignore[code]
 
 

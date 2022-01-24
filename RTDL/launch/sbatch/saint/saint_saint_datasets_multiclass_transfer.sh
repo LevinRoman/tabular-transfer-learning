@@ -5,6 +5,14 @@ declare -a StringArray=("188" "1596" "4541" "40664" "40685" "40687" "40975" "411
 #4541 is 3 class
 #42734 has Nans
 #41166?
+#TAKING: 188, 40687
+#40975 -- categorical only, default saint doesn't work
+#41166 -- 2 GPUs
+#41169 -- 100 class helena
+#1483
+#jannis (41168)
+#Regression: 541 42726 42728 california housing, year
+#188, 40687, 40975, 41166, 41169, 1483, jannis, regression:  541 42726 42728 california housing, year
 # Iterate the string array using for loop
 for data in ${StringArray[@]}; do
     #copy the config

@@ -1,3 +1,4 @@
+import numpy as np
 import math
 import typing as ty
 from pathlib import Path
@@ -6,7 +7,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import zero
 from torch import einsum
-import numpy as np
 from einops import rearrange
 import lib
 
