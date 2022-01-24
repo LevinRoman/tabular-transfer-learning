@@ -1,0 +1,58 @@
+program = 'bin/ft_transformer.py'
+
+[base_config]
+seed = 0
+
+	[base_config.data]
+	dset_id = 'year' # id of openml dataset
+	task = 'regression' # can be binclass, regression, regression
+	cat_policy = 'indices'
+	normalization = 'quantile'
+	y_policy = 'mean_std'
+
+	[base_config.model]
+	activation = 'reglu'
+	initialization = 'kaiming'
+	n_heads = 8
+	prenormalization = true
+
+	[base_config.training]
+	batch_size = 256
+	eval_batch_size = 8192
+	n_epochs = 500
+	optimizer = 'adamw'
+	patience = 30
+	lr_n_decays = 0
+	num_batch_warm_up = 0
+
+
+	[base_config.transfer]
+	stage = 'pretrain'
+	load_checkpoint = false
+	checkpoint_path = nan
+	pretrain_proportion = 0.5
+	downstream_samples_per_class = nan
+	freeze_feature_extractor = false
+	layers_to_fine_tune = []
+	use_mlp_head = false
+	epochs_warm_up_head = 0
+	head_lr = nan
+
+[optimization.options]
+n_trials = 30
+
+[optimization.sampler]
+seed = 0
+
+[optimization.space.model]
+attention_dropout = [ 'uniform', 0.0, 0.5 ]
+d_ffn_factor = [ '$d_ffn_factor', 1.0, 4.0 ]
+d_token = [ '$d_token', 64, 512 ]
+ffn_dropout = [ 'uniform', 0.0, 0.5 ]
+n_layers = [ 'int', 1, 4 ]
+residual_dropout = [ '?uniform', 0.0, 0.0, 0.2 ]
+
+[optimization.space.training]
+lr = [ 'loguniform', 1e-05, 0.001 ]
+weight_decay = [ 'loguniform', 1e-06, 0.001 ]
+

@@ -1,3 +1,4 @@
+import numpy as np
 import math
 import typing as ty
 from pathlib import Path
@@ -6,7 +7,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import zero
 from torch import einsum
-import numpy as np
 from einops import rearrange
 import lib
 
@@ -474,22 +474,41 @@ if __name__ == "__main__":
                                                                              datasplit=[.65, .15, .2],
                                                                              pretrain_proportion=args['transfer'][
                                                                                  'pretrain_proportion'],
-                                                                             downstream_train_data_limit=
+                                                                             downstream_samples_per_class=
                                                                              args['transfer'][
-                                                                                 'downstream_train_data_fraction'])
+                                                                                 'downstream_samples_per_class'])
     #####################################################################################
     # TRANSFER#
     #####################################################################################
+
+    stats['replacement_sampling'] = info['replacement_sampling']
+    if args['data']['task'] == 'multiclass':
+        stats['num_classes_train'] = len(set(y['train']))
+        stats['num_classes_test'] = len(set(y['test']))
+    else:
+        stats['num_classes_train'] = np.nan
+        stats['num_classes_test'] = np.nan
+
+    stats['num_training_samples'] = len(y['train'])
+    if C is not None:
+        stats['cat_features_no'] = C['train'].shape[1]
+    else:
+        stats['cat_features_no'] = 0
+    if N is not None:
+        stats['num_features_no'] = N['train'].shape[1]
+    else:
+        stats['num_features_no'] = 0
 
     D = lib.Dataset(N, C, y, info)
 
     X = D.build_X(
         normalization=args['data']['normalization'],
-        num_nan_policy='mean',   # replace missing values in numerical features by mean
-        cat_nan_policy='new',    # replace missing values in categorical features by new values
+        num_nan_policy='mean',  # replace missing values in numerical features by mean
+        cat_nan_policy='new',  # replace missing values in categorical features by new values
         cat_policy=args['data'].get('cat_policy', 'indices'),
         cat_min_frequency=args['data'].get('cat_min_frequency', 0.0),
         seed=args['seed'],
+        full_cat_data_for_encoder=full_cat_data_for_encoder
     )
 
 
@@ -498,10 +517,11 @@ if __name__ == "__main__":
     zero.set_randomness(args['seed'])
 
     Y, y_info = D.build_y(args['data'].get('y_policy'))
+
     lib.dump_pickle(y_info, output / 'y_info.pickle')
     X = tuple(None if x is None else lib.to_tensors(x) for x in X)
-
     Y = lib.to_tensors(Y)
+
     device = lib.get_device()
 
     if device.type != 'cpu':
@@ -526,15 +546,17 @@ if __name__ == "__main__":
     #              'test': torch.empty(X_cat['test'].shape[0], 0).long().to(device)}
 
     del X
+    # do we think we might need to not convert to float here if binclass since we want multilabel?
     if not D.is_multiclass:
         Y_device = {k: v.float() for k, v in Y_device.items()}
 
-    '''Constructing loss function, model and optimizer'''
+    #Constructing loss function, model and optimizer
 
     train_size = D.size(lib.TRAIN)
     batch_size = args['training']['batch_size']
     epoch_size = stats['epoch_size'] = math.ceil(train_size / batch_size)
-    eval_batch_size = args['training']['eval_batch_size']
+    #Hardcoded for Saint because of inter-sample attention
+    eval_batch_size = batch_size#args['training']['eval_batch_size']
     print('Train size is {}, batch_size is {}, epoch_size is {}, eval_batch_size is {}'.format(train_size, batch_size,
                                                                                                epoch_size, eval_batch_size))
 
@@ -550,7 +572,7 @@ if __name__ == "__main__":
 
     model = SAINT(
         categories = lib.get_categories_full_cat_data(full_cat_data_for_encoder),#lib.get_categories(X_cat),
-        num_continuous = X_num['train'].shape[1],
+        num_continuous = X_num['train'].shape[1] if X_num is not None else 0,
         dim = args['model']['embed_dim'],
         dim_out = 1,
         depth = args['model']['depth'],
@@ -561,40 +583,56 @@ if __name__ == "__main__":
         cont_embeddings = args['model']['cont_embeddings'],
         attentiontype = args['model']['attentiontype'],
         final_mlp_style = args['model']['final_mlp_style'],
-        y_dim = D.info['n_classes'] if D.is_multiclass else 1,
+        y_dim = D.info['n_classes'] if D.is_multiclass or D.is_binclass else 1,
         use_cls = args['model']['use_cls']
     ).to(device)
 
-
+    head_name, head_module = 'mlpfory', model.mlpfory#list(model.named_modules())[-1]#list(model.named_parameters())[-1][0].replace('.bias', '')
+    if 'head' in args['transfer']['layers_to_fine_tune']:
+        head_idx = args['transfer']['layers_to_fine_tune'].index('head')
+        args['transfer']['layers_to_fine_tune'][head_idx] = head_name
+    print(args['transfer']['layers_to_fine_tune'])
+    print(head_name)
     #####################################################################################
-    #TRANSFER#
+    # TRANSFER#
     #####################################################################################
     if ('downstream' in args['transfer']['stage']) and (args['transfer']['load_checkpoint']):
         print('Loading checkpoint, doing transfer learning')
         pretrain_checkpoint = torch.load(args['transfer']['checkpoint_path'])
-        # try:
-            #FAILS HERE CURRENTLY BECAUSE OF KEYERROR LOADING PRETRAINED MODEL
-            #NEED DIFFERENT LOAD STATE DICT
-        pretrained_feature_extractor_dict = {k: v for k, v in pretrain_checkpoint['model'].items() if 'mlpfory' not in k}
-        missing_keys, unexpected_keys = model.load_state_dict(pretrained_feature_extractor_dict, strict = False)
+
+        pretrained_feature_extractor_dict = {k: v for k, v in pretrain_checkpoint['model'].items() if
+                                             head_name not in k}
+        missing_keys, unexpected_keys = model.load_state_dict(pretrained_feature_extractor_dict, strict=False)
         print('\n Loaded \n Missing keys:{}\n Unexpected keys:{}'.format(missing_keys, unexpected_keys))
         # except:
         #     model.load_state_dict(lib.remove_parallel(pretrain_checkpoint['model']))
 
-        #Freeze feature extractor
+        if args['transfer']['use_mlp_head']:
+            emb_dim = model.dim#head_module.in_features  # model.head.in_features
+            out_dim = D.info['n_classes'] if D.is_multiclass or D.is_binclass else 1#model.y_dim#head_module.out_features  # model.head.out_features
+            model.mlpfory = nn.Sequential(
+                nn.Linear(emb_dim, 200),
+                nn.ReLU(),
+                nn.Linear(200, 200),
+                nn.ReLU(),
+                nn.Linear(200, out_dim)).to(device)
+
+        # Freeze feature extractor
         if args['transfer']['freeze_feature_extractor']:
             for name, param in model.named_parameters():
                 print(name, param.shape)
                 if not any(x in name for x in args['transfer']['layers_to_fine_tune']):
-                # if 'head' not in name:
+                    # if head_name not in name:
                     param.requires_grad = False
                 else:
                     print('\n Unfrozen param {}\n'.format(name))
     else:
         print('No transfer learning')
+
     #####################################################################################
     # TRANSFER#
     #####################################################################################
+
     for name, param in model.named_parameters():
         print(name, param.shape)
         if param.requires_grad:
@@ -606,24 +644,34 @@ if __name__ == "__main__":
         model = nn.DataParallel(model)
     stats['n_parameters'] = lib.get_n_parameters(model)
 
-    def needs_wd(name):
-        return all(x not in name for x in ['tokenizer', '.norm', '.bias'])
-
-    # TODO: need to change this if we want to not apply weight decay to some groups of parameters like ft_transformer
-
-    parameters_with_wd = [v for k, v in model.named_parameters() if needs_wd(k)]
-    parameters_without_wd = [v for k, v in model.named_parameters() if not needs_wd(k)]
-    optimizer = lib.make_optimizer(
-        args['training']['optimizer'],
-        (
-            [
-                {'params': parameters_with_wd},
-                {'params': parameters_without_wd, 'weight_decay': 0.0},
-            ]
-        ),
-        args['training']['lr'],
-        args['training']['weight_decay'],
-    )
+    ###############################################################
+    # TRANSFER: differential learning rates for head and feat extr
+    ###############################################################
+    print('\n\n HEAD LR {}: {}\n\n'.format(args['transfer']['head_lr'], np.isnan(args['transfer']['head_lr'])))
+    if ('downstream' in args['transfer']['stage']) and (not np.isnan(args['transfer']['head_lr'])):
+        head_parameters = [v for k, v in model.named_parameters() if head_name in k]
+        backbone_parameters = [v for k, v in model.named_parameters() if head_name not in k]
+        optimizer = lib.make_optimizer(
+            args['training']['optimizer'],
+            (
+                [
+                    {'params': backbone_parameters},
+                    {'params': head_parameters, 'lr': args['transfer']['head_lr']}
+                ]
+            ),
+            args['training']['lr'],
+            args['training']['weight_decay'],
+        )
+    else:
+        optimizer = lib.make_optimizer(
+            args['training']['optimizer'],
+            model.parameters(),
+            args['training']['lr'],
+            args['training']['weight_decay'],
+        )
+    ###############################################################
+    # TRANSFER: differential learning rates for head and feat extr
+    ###############################################################
 
 
     stream = zero.Stream(lib.IndexLoader(train_size, batch_size, True, device))
@@ -664,7 +712,7 @@ if __name__ == "__main__":
                 X_cat_batch = torch.empty(len(batch_idx), 0, device=device) if X_cat is None else X_cat[part][batch_idx]
                 X_num_mask_batch = torch.empty(len(batch_idx), 0, device=device).long() if X_num is None else num_nan_masks[part][
                     batch_idx]
-                X_cat_mask_batch = torch.empty(len(batch_idx), 0, device=device) if X_cat is None else cat_nan_masks[part][
+                X_cat_mask_batch = torch.empty(len(batch_idx), 0, device=device).long() if X_cat is None else cat_nan_masks[part][
                     batch_idx]
 
 
@@ -706,20 +754,50 @@ if __name__ == "__main__":
 
     # %%
     timer.run()
+    epoch_idx = 0
+    # If doing head warmup
+    if args['transfer']['epochs_warm_up_head'] > 0:
+        lib.freeze_parameters(model, [head_name])
+        head_warmup_flag = True
     for epoch in stream.epochs(args['training']['n_epochs']):
         print_epoch_info()
 
         model.train()
         epoch_losses = []
+        cur_batch = 0
         for batch_idx in epoch:
+            if len(batch_idx) == 1:
+                continue
 
-            random_state = zero.get_random_state()
-            zero.set_random_state(random_state)
+            ###########
+            # Transfer: head warmup
+            ###########
+            # If doing head warmup
+            if args['transfer']['epochs_warm_up_head'] > 0:
+                if head_warmup_flag:
+                    if epoch_idx >= args['transfer']['epochs_warm_up_head']:
+                        # Stop warming up head after a predefined number of batches
+                        lib.unfreeze_all_params(model)
+                        head_warmup_flag = False
+            ###########
+            # Transfer: head warmup
+            ###########
+
+            ###########
+            # Transfer: lr warmup
+            ###########
+            # if epoch_idx*epoch_size + cur_batch + 1 <= args['training']['num_batch_warm_up']:  # adjust LR for each training batch during warm up
+            #     lib.warm_up_lr(epoch_idx*epoch_size + cur_batch + 1, args['training']['num_batch_warm_up'], args['training']['lr'], optimizer)
+            ###########
+            # Transfer: lr warmup
+            ###########
+            # random_state = zero.get_random_state()
+            # zero.set_random_state(random_state)
 
             X_num_batch = torch.empty(len(batch_idx), 0, device=device) if X_num is None else X_num['train'][batch_idx].float()
             X_cat_batch =  torch.empty(len(batch_idx), 0, device=device) if X_cat is None else X_cat['train'][batch_idx]
-            X_num_mask_batch =  torch.empty(len(batch_idx), 0, device=device) if X_num is None else num_nan_masks['train'][batch_idx]
-            X_cat_mask_batch =  torch.empty(len(batch_idx), 0, device=device) if X_cat is None else cat_nan_masks['train'][batch_idx]
+            X_num_mask_batch =  torch.empty(len(batch_idx), 0, device=device).long() if X_num is None else num_nan_masks['train'][batch_idx]
+            X_cat_mask_batch =  torch.empty(len(batch_idx), 0, device=device).long() if X_cat is None else cat_nan_masks['train'][batch_idx]
 
             optimizer.zero_grad()
             model_output = model(X_cat_batch, X_num_batch, X_cat_mask_batch, X_num_mask_batch)
@@ -727,6 +805,7 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
             epoch_losses.append(loss.detach())
+            cur_batch += 1
 
         epoch_losses = torch.stack(epoch_losses).tolist()
         training_log[lib.TRAIN].extend(epoch_losses)
@@ -736,6 +815,11 @@ if __name__ == "__main__":
         for k, v in metrics.items():
             training_log[k].append(v)
         progress.update(metrics[lib.VAL]['score'])
+
+        # Record metrics every 5 epochs on downstream tasks:
+        if 'downstream' in args['transfer']['stage']:
+            if epoch_idx % 1 == 0:
+                stats['Epoch_{}_metrics'.format(epoch_idx)], predictions = evaluate(lib.PARTS)
 
         if progress.success:
             print('New best epoch!')
@@ -747,6 +831,7 @@ if __name__ == "__main__":
 
         elif progress.fail: # stopping criterion is based on val accuracy (see patience arg in args)
             break
+        epoch_idx += 1
 
     # %%
     print('\nRunning the final evaluation...')

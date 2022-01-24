@@ -15,11 +15,11 @@ stage = 'pretrain'
 load_checkpoint = false
 checkpoint_path = nan
 pretrain_proportion = 0.5
-downstream_train_data_fraction = nan
+downstream_samples_per_class = nan
 freeze_feature_extractor = false
 layers_to_fine_tune = []
 use_mlp_head = false
-num_batch_warm_up_head = 0
+epochs_warm_up_head = 0
 head_lr = nan
 
 [model]
@@ -39,8 +39,8 @@ batch_size = 256
 eval_batch_size = 8192
 lr = 0.0001
 lr_n_decays = 0
-n_epochs = 1000000000
+n_epochs = 500
 optimizer = 'adamw'
-patience = 16
+patience = 30
 weight_decay = 1e-05
 num_batch_warm_up = 0

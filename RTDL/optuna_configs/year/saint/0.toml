@@ -1,0 +1,58 @@
+program = 'bin/saint.py'
+
+[base_config]
+seed = 0
+
+	[base_config.data]
+	dset_id = 'year' # id of openml dataset
+	task = 'regression' # can be binclass, regression, regression
+	cat_policy = 'indices'
+	normalization = 'quantile'
+	y_policy = 'mean_std'
+
+	[base_config.model]
+	cont_embeddings = 'MLP'
+	attentiontype = 'colrow'
+	final_mlp_style = 'sep'
+	use_cls = true
+
+	[base_config.training]
+	n_epochs = 500
+	optimizer = 'adamw'
+	patience = 30
+	lr_n_decays = 0
+	num_batch_warm_up = 0
+
+
+	[base_config.transfer]
+	stage = 'pretrain'
+	load_checkpoint = false
+	checkpoint_path = nan
+	pretrain_proportion = 0.5
+	downstream_samples_per_class = nan
+	freeze_feature_extractor = false
+	layers_to_fine_tune = []
+	use_mlp_head = false
+	epochs_warm_up_head = 0
+	head_lr = nan
+
+
+[optimization.options]
+n_trials = 30
+
+[optimization.sampler]
+seed = 0
+
+
+[optimization.space.model]
+attn_dropout = [ 'uniform', 0.2, 0.8]
+ff_dropout = [ 'uniform', 0.2, 0.8]
+heads = ['int', 2, 8]
+embed_dim = ['int', 8, 128]
+depth = ['int', 1, 2]
+
+[optimization.space.training]
+lr = [ 'loguniform', 1e-05, 0.001]
+weight_decay = [ 'loguniform', 1e-06, 0.001]
+batch_size = ['int', 128, 512]
+

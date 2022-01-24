@@ -125,20 +125,36 @@ if __name__ == "__main__":
     # TRANSFER#
     #####################################################################################
     N, C, y, info, full_cat_data_for_encoder = lib.data_prep_openml_transfer(ds_id=dset_id,
-                                                                             seed=args['seed'],
-                                                                             task=args['data']['task'],
-                                                                             stage=args['transfer']['stage'],
-                                                                             datasplit=[.65, .15, .2],
-                                                                             pretrain_proportion=args['transfer'][
-                                                                                 'pretrain_proportion'],
-                                                                             downstream_train_data_limit=
-                                                                             args['transfer'][
-                                                                                 'downstream_train_data_fraction'])
+                                                  seed=args['seed'],
+                                                  task=args['data']['task'],
+                                                  stage=args['transfer']['stage'],
+                                                  datasplit=[.65, .15, .2],
+                                                  pretrain_proportion=args['transfer']['pretrain_proportion'],
+                                                  downstream_samples_per_class=args['transfer']['downstream_samples_per_class'])
     #####################################################################################
     # TRANSFER#
     #####################################################################################
 
+    stats['replacement_sampling'] = info['replacement_sampling']
+    if args['data']['task'] == 'multiclass':
+        stats['num_classes_train'] = len(set(y['train']))
+        stats['num_classes_test'] = len(set(y['test']))
+    else:
+        stats['num_classes_train'] = np.nan
+        stats['num_classes_test'] = np.nan
+
+    stats['num_training_samples'] = len(y['train'])
+    if C is not None:
+        stats['cat_features_no'] = C['train'].shape[1]
+    else:
+        stats['cat_features_no'] = 0
+    if N is not None:
+        stats['num_features_no'] = N['train'].shape[1]
+    else:
+        stats['num_features_no'] = 0
+
     D = lib.Dataset(N, C, y, info)
+
     X = D.build_X(
         normalization=args['data'].get('normalization'),
         num_nan_policy='mean',
@@ -146,15 +162,19 @@ if __name__ == "__main__":
         cat_policy=args['data'].get('cat_policy', 'indices'),
         cat_min_frequency=args['data'].get('cat_min_frequency', 0.0),
         seed=args['seed'],
+        full_cat_data_for_encoder=full_cat_data_for_encoder
     )
     if not isinstance(X, tuple):
         X = (X, None)
-
     zero.set_randomness(args['seed'])
+
     Y, y_info = D.build_y(args['data'].get('y_policy'))
+
+    print('\n Y: {} {} \n'.format(Y['train'].sum(axis=0), Y['train'].shape))
     lib.dump_pickle(y_info, output / 'y_info.pickle')
     X = tuple(None if x is None else lib.to_tensors(x) for x in X)
     Y = lib.to_tensors(Y)
+
     device = lib.get_device()
     if device.type != 'cpu':
         X = tuple(
@@ -163,14 +183,22 @@ if __name__ == "__main__":
         Y_device = {k: v.to(device) for k, v in Y.items()}
     else:
         Y_device = Y
+
     X_num, X_cat, _, _ = X
+
+    del X
     if not D.is_multiclass:
         Y_device = {k: v.float() for k, v in Y_device.items()}
+
+    # Constructing loss function, model and optimizer
 
     train_size = D.size(lib.TRAIN)
     batch_size = args['training']['batch_size']
     epoch_size = stats['epoch_size'] = math.ceil(train_size / batch_size)
     eval_batch_size = args['training']['eval_batch_size']
+    print('Train size is {}, batch_size is {}, epoch_size is {}, eval_batch_size is {}'.format(train_size, batch_size,
+                                                                                               epoch_size,
+                                                                                               eval_batch_size))
 
     loss_fn = (
         F.binary_cross_entropy_with_logits
@@ -179,12 +207,15 @@ if __name__ == "__main__":
         if D.is_multiclass
         else F.mse_loss
     )
+    print('Loss fn is {}'.format(loss_fn))
+
     args["model"]["d_embedding"] = args["model"].get("d_embedding", None)
 
+    print('\n CATEGORIES:{}\n'.format(lib.get_categories_full_cat_data(full_cat_data_for_encoder)))
     model = ResNet(
         d_numerical=0 if X_num is None else X_num['train'].shape[1],
         categories=lib.get_categories_full_cat_data(full_cat_data_for_encoder),#lib.get_categories(X_cat),
-        d_out=D.info['n_classes'] if D.is_multiclass else 1,
+        d_out=D.info['n_classes'] if D.is_multiclass or D.is_binclass else 1, #multilabel in case of pretraining binclass
         **args['model'],
     ).to(device)
 
@@ -194,14 +225,22 @@ if __name__ == "__main__":
     if ('downstream' in args['transfer']['stage']) and (args['transfer']['load_checkpoint']):
         print('Loading checkpoint, doing transfer learning')
         pretrain_checkpoint = torch.load(args['transfer']['checkpoint_path'])
-        # try:
-        # FAILS HERE CURRENTLY BECAUSE OF KEYERROR LOADING PRETRAINED MODEL
-        # NEED DIFFERENT LOAD STATE DICT
+
         pretrained_feature_extractor_dict = {k: v for k, v in pretrain_checkpoint['model'].items() if 'head' not in k}
         missing_keys, unexpected_keys = model.load_state_dict(pretrained_feature_extractor_dict, strict=False)
         print('\n Loaded \n Missing keys:{}\n Unexpected keys:{}'.format(missing_keys, unexpected_keys))
         # except:
         #     model.load_state_dict(lib.remove_parallel(pretrain_checkpoint['model']))
+
+        if args['transfer']['use_mlp_head']:
+            emb_dim = model.head.in_features
+            out_dim = model.head.out_features
+            model.head = nn.Sequential(
+                nn.Linear(emb_dim, 200),
+                nn.ReLU(),
+                nn.Linear(200, 200),
+                nn.ReLU(),
+                nn.Linear(200, out_dim)).to(device)
 
         # Freeze feature extractor
         if args['transfer']['freeze_feature_extractor']:
@@ -222,15 +261,40 @@ if __name__ == "__main__":
         if param.requires_grad:
             print('Trainable', name, param.shape)
 
-
-
+    if torch.cuda.device_count() > 1:  # type: ignore[code]
+        print('Using nn.DataParallel')
+        model = nn.DataParallel(model)
     stats['n_parameters'] = lib.get_n_parameters(model)
-    optimizer = lib.make_optimizer(
-        args['training']['optimizer'],
-        model.parameters(),
-        args['training']['lr'],
-        args['training']['weight_decay'],
-    )
+
+
+    ###############################################################
+    # TRANSFER: differential learning rates for head and feat extr
+    ###############################################################
+    print('\n\n HEAD LR {}: {}\n\n'.format(args['transfer']['head_lr'], np.isnan(args['transfer']['head_lr'])))
+    if ('downstream' in args['transfer']['stage']) and (not np.isnan(args['transfer']['head_lr'])):
+        head_parameters = [v for k, v in model.named_parameters() if 'head' in k]
+        backbone_parameters = [v for k, v in model.named_parameters() if 'head' not in k]
+        optimizer = lib.make_optimizer(
+            args['training']['optimizer'],
+            (
+                [
+                    {'params': backbone_parameters},
+                    {'params': head_parameters, 'lr': args['transfer']['head_lr']}
+                ]
+            ),
+            args['training']['lr'],
+            args['training']['weight_decay'],
+        )
+    else:
+        optimizer = lib.make_optimizer(
+            args['training']['optimizer'],
+            model.parameters(),
+            args['training']['lr'],
+            args['training']['weight_decay'],
+        )
+    ###############################################################
+    # TRANSFER: differential learning rates for head and feat extr
+    ###############################################################
 
     stream = zero.Stream(lib.IndexLoader(train_size, batch_size, True, device))
     progress = zero.ProgressTracker(args['training']['patience'])
@@ -301,25 +365,56 @@ if __name__ == "__main__":
 
     # %%
     timer.run()
+    epoch_idx = 0
+    #If doing head warmup
+    if args['transfer']['epochs_warm_up_head'] > 0:
+        lib.freeze_parameters(model, ['head'])
+        head_warmup_flag = True
     for epoch in stream.epochs(args['training']['n_epochs']):
         print_epoch_info()
 
         model.train()
         epoch_losses = []
+        cur_batch = 0
         for batch_idx in epoch:
+            if len(batch_idx) == 1:
+                continue
+            ###########
+            # Transfer: head warmup
+            ###########
+            # If doing head warmup
+            if args['transfer']['epochs_warm_up_head'] > 0:
+                if head_warmup_flag:
+                    if epoch_idx >= args['transfer']['epochs_warm_up_head']:
+                        # Stop warming up head after a predefined number of batches
+                        lib.unfreeze_all_params(model)
+                        head_warmup_flag = False
+            ###########
+            # Transfer: head warmup
+            ###########
 
-            random_state = zero.get_random_state()
-            zero.set_random_state(random_state)
+            ###########
+            # Transfer: lr warmup
+            ###########
+            # if epoch_idx*epoch_size + cur_batch + 1 <= args['training']['num_batch_warm_up']:  # adjust LR for each training batch during warm up
+            #     lib.warm_up_lr(epoch_idx*epoch_size + cur_batch + 1, args['training']['num_batch_warm_up'], args['training']['lr'], optimizer)
+            ###########
+            # Transfer: lr warmup
+            ###########
+            #random_state = zero.get_random_state()
+            #zero.set_random_state(random_state)
 
             X_num_batch = None if X_num is None else X_num['train'][batch_idx].float()
             X_cat_batch = None if X_cat is None else X_cat['train'][batch_idx]
 
             optimizer.zero_grad()
+
             model_output = model(X_num_batch, X_cat_batch)
-            loss = loss_fn(model_output.squeeze(), Y_device['train'][batch_idx])
+            loss = loss_fn(model_output, Y_device['train'][batch_idx])
             loss.backward()
             optimizer.step()
             epoch_losses.append(loss.detach())
+            cur_batch += 1
 
         epoch_losses = torch.stack(epoch_losses).tolist()
         training_log[lib.TRAIN].extend(epoch_losses)
@@ -329,6 +424,11 @@ if __name__ == "__main__":
         for k, v in metrics.items():
             training_log[k].append(v)
         progress.update(metrics[lib.VAL]['score'])
+
+        # Record metrics every 5 epochs on downstream tasks:
+        if 'downstream' in args['transfer']['stage']:
+            if epoch_idx % 1 == 0:
+                stats['Epoch_{}_metrics'.format(epoch_idx)], predictions = evaluate(lib.PARTS)
 
         if progress.success:
             print('New best epoch!')
@@ -340,6 +440,7 @@ if __name__ == "__main__":
 
         elif progress.fail: # stopping criterion is based on val accuracy (see patience arg in args)
             break
+        epoch_idx += 1
 
     # %%
     print('\nRunning the final evaluation...')
