@@ -330,11 +330,11 @@ class SAINT(nn.Module):
             )
 
         l = input_size // 8
-        #hidden_dimensions = list(map(lambda t: l * t, mlp_hidden_mults))
-        #all_dimensions = [input_size, *hidden_dimensions, dim_out]
+        hidden_dimensions = list(map(lambda t: l * t, mlp_hidden_mults))
+        all_dimensions = [input_size, *hidden_dimensions, dim_out]
 
         # MLP for the last layer (?)
-        #self.mlp = MLP(all_dimensions, act = mlp_act)
+        self.mlp = MLP(all_dimensions, act = mlp_act)
         # Embedding layer for all features (unique cat tokens + special tokens)
         self.embeds = nn.Embedding(self.total_tokens, self.dim) #.to(device)
 
@@ -357,18 +357,18 @@ class SAINT(nn.Module):
         self.single_mask = nn.Embedding(2, self.dim)
         self.pos_encodings = nn.Embedding(self.num_categories+ self.num_continuous, self.dim)
 
-        #if self.final_mlp_style == 'common':
-        #    self.mlp1 = simple_MLP([dim,(self.total_tokens)*2, self.total_tokens])
-        #    self.mlp2 = simple_MLP([dim ,(self.num_continuous), 1])
+        if self.final_mlp_style == 'common':
+            self.mlp1 = simple_MLP([dim,(self.total_tokens)*2, self.total_tokens])
+            self.mlp2 = simple_MLP([dim ,(self.num_continuous), 1])
 
-        #else:
-        #    self.mlp1 = sep_MLP(dim,self.num_categories,self.categories)
-        #    self.mlp2 = sep_MLP(dim,self.num_continuous,np.ones(self.num_continuous).astype(int))
+        else:
+            self.mlp1 = sep_MLP(dim,self.num_categories,self.categories)
+            self.mlp2 = sep_MLP(dim,self.num_continuous,np.ones(self.num_continuous).astype(int))
 
 
         self.mlpfory = simple_MLP([dim ,1000, y_dim])
-        #self.pt_mlp = simple_MLP([dim*(self.num_continuous+self.num_categories) ,6*dim*(self.num_continuous+self.num_categories)//5, dim*(self.num_continuous+self.num_categories)//2])
-        #self.pt_mlp2 = simple_MLP([dim*(self.num_continuous+self.num_categories) ,6*dim*(self.num_continuous+self.num_categories)//5, dim*(self.num_continuous+self.num_categories)//2])
+        self.pt_mlp = simple_MLP([dim*(self.num_continuous+self.num_categories) ,6*dim*(self.num_continuous+self.num_categories)//5, dim*(self.num_continuous+self.num_categories)//2])
+        self.pt_mlp2 = simple_MLP([dim*(self.num_continuous+self.num_categories) ,6*dim*(self.num_continuous+self.num_categories)//5, dim*(self.num_continuous+self.num_categories)//2])
 
     def embed_data_mask(self, x_categ, x_cont, cat_mask, con_mask):
         '''
@@ -526,9 +526,9 @@ if __name__ == "__main__":
 
     if device.type != 'cpu':
         X = tuple(
-            None if x is None else {k: v.to(device) for k, v in x.items()} for x in X
+            None if x is None else {k: v for k, v in x.items()} for x in X
         )
-        Y_device = {k: v.to(device) for k, v in Y.items()}
+        Y_device = {k: v for k, v in Y.items()}
     else:
         Y_device = Y
 
@@ -708,12 +708,12 @@ if __name__ == "__main__":
                 # X_num_mask_batch = None if num_nan_masks is None else num_nan_masks[part][batch_idx]
                 # X_cat_mask_batch = None if cat_nan_masks is None else cat_nan_masks[part][batch_idx]
 
-                X_num_batch = torch.empty(len(batch_idx), 0, device=device) if X_num is None else X_num[part][batch_idx].float()
-                X_cat_batch = torch.empty(len(batch_idx), 0, device=device) if X_cat is None else X_cat[part][batch_idx]
+                X_num_batch = torch.empty(len(batch_idx), 0, device=device) if X_num is None else X_num[part][batch_idx].float().to(device)
+                X_cat_batch = torch.empty(len(batch_idx), 0, device=device) if X_cat is None else X_cat[part][batch_idx].to(device)
                 X_num_mask_batch = torch.empty(len(batch_idx), 0, device=device).long() if X_num is None else num_nan_masks[part][
-                    batch_idx]
+                    batch_idx].to(device)
                 X_cat_mask_batch = torch.empty(len(batch_idx), 0, device=device).long() if X_cat is None else cat_nan_masks[part][
-                    batch_idx]
+                    batch_idx].to(device)
 
 
                 model_output = model(X_cat_batch, X_num_batch, X_cat_mask_batch, X_num_mask_batch)
@@ -794,14 +794,14 @@ if __name__ == "__main__":
             # random_state = zero.get_random_state()
             # zero.set_random_state(random_state)
 
-            X_num_batch = torch.empty(len(batch_idx), 0, device=device) if X_num is None else X_num['train'][batch_idx].float()
-            X_cat_batch =  torch.empty(len(batch_idx), 0, device=device) if X_cat is None else X_cat['train'][batch_idx]
-            X_num_mask_batch =  torch.empty(len(batch_idx), 0, device=device).long() if X_num is None else num_nan_masks['train'][batch_idx]
-            X_cat_mask_batch =  torch.empty(len(batch_idx), 0, device=device).long() if X_cat is None else cat_nan_masks['train'][batch_idx]
+            X_num_batch = torch.empty(len(batch_idx), 0, device=device) if X_num is None else X_num['train'][batch_idx].float().to(device)
+            X_cat_batch =  torch.empty(len(batch_idx), 0, device=device) if X_cat is None else X_cat['train'][batch_idx].to(device)
+            X_num_mask_batch =  torch.empty(len(batch_idx), 0, device=device).long() if X_num is None else num_nan_masks['train'][batch_idx].to(device)
+            X_cat_mask_batch =  torch.empty(len(batch_idx), 0, device=device).long() if X_cat is None else cat_nan_masks['train'][batch_idx].to(device)
 
             optimizer.zero_grad()
             model_output = model(X_cat_batch, X_num_batch, X_cat_mask_batch, X_num_mask_batch)
-            loss = loss_fn(model_output.squeeze(), Y_device['train'][batch_idx])
+            loss = loss_fn(model_output.squeeze(), Y_device['train'][batch_idx].to(device))
             loss.backward()
             optimizer.step()
             epoch_losses.append(loss.detach())

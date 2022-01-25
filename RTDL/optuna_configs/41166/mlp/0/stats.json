@@ -33,7 +33,7 @@
         },
         "optimization": {
             "options": {
-                "n_trials": 100
+                "n_trials": 30
             },
             "sampler": {
                 "seed": 0
@@ -78,12 +78,16 @@
     },
     "environment": {
         "devices": {
-            "CUDA_VISIBLE_DEVICES": "0",
-            "torch.version.cuda": "10.1",
-            "torch.backends.cudnn.version()": 7603,
+            "CUDA_VISIBLE_DEVICES": "0,1",
+            "torch.version.cuda": "10.2",
+            "torch.backends.cudnn.version()": 7605,
             "torch.cuda.nccl.version()": 2708,
             "driver": "470.57.02",
             "0": {
+                "name": "NVIDIA GeForce RTX 2080 Ti",
+                "total_memory": 11554717696
+            },
+            "1": {
                 "name": "NVIDIA GeForce RTX 2080 Ti",
                 "total_memory": 11554717696
             }

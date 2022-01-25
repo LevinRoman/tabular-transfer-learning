@@ -15,6 +15,7 @@ seed = 0
 	attentiontype = 'colrow'
 	final_mlp_style = 'sep'
 	use_cls = true
+	depth = 1
 
 	[base_config.training]
 	n_epochs = 500
@@ -47,9 +48,8 @@ seed = 0
 [optimization.space.model]
 attn_dropout = [ 'uniform', 0.2, 0.8]
 ff_dropout = [ 'uniform', 0.2, 0.8]
-heads = ['int', 2, 8]
+heads = ['int', 2, 6]
 embed_dim = ['int', 8, 128]
-depth = ['int', 1, 2]
 
 [optimization.space.training]
 lr = [ 'loguniform', 1e-05, 0.001]
