@@ -1,0 +1,2642 @@
+[
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.2744067519636624,
+                "d_ffn_factor": 2.097045399411506,
+                "d_token": 88,
+                "ffn_dropout": 0.4289728088113784,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 4,
+                "prenormalization": true,
+                "residual_dropout": 0.1247127393571945
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 5.871694001325904e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 7.809150983452712e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 326897,
+        "best_epoch": 96,
+        "metrics": {
+            "train": {
+                "rmse": 0.7333496571669043,
+                "score": -0.7333496571669043
+            },
+            "val": {
+                "rmse": 0.843351663674449,
+                "score": -0.843351663674449
+            },
+            "test": {
+                "rmse": 0.6720904994164237,
+                "score": -0.6720904994164237
+            }
+        },
+        "time": "0:00:08",
+        "trial_id": 0,
+        "tuning_time": "0:00:13"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.02835648865872159,
+                "d_ffn_factor": 1.211979255826893,
+                "d_token": 72,
+                "ffn_dropout": 0.3958625190413323,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 4,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 0.0001368009527972692,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 0.0005981221901152554
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 164713,
+        "best_epoch": 21,
+        "metrics": {
+            "train": {
+                "rmse": 0.7305208711680148,
+                "score": -0.7305208711680148
+            },
+            "val": {
+                "rmse": 0.8098173432087394,
+                "score": -0.8098173432087394
+            },
+            "test": {
+                "rmse": 0.663066858127114,
+                "score": -0.663066858127114
+            }
+        },
+        "time": "0:00:03",
+        "trial_id": 1,
+        "tuning_time": "0:00:22"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.03551802909894347,
+                "d_ffn_factor": 0.840925266069748,
+                "d_token": 472,
+                "ffn_dropout": 0.184120769920274,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 2,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 1.908541293388872e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 0.0004076259041096252
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 2935537,
+        "best_epoch": 34,
+        "metrics": {
+            "train": {
+                "rmse": 0.6066056053529829,
+                "score": -0.6066056053529829
+            },
+            "val": {
+                "rmse": 0.806511016171287,
+                "score": -0.806511016171287
+            },
+            "test": {
+                "rmse": 0.7324429215115618,
+                "score": -0.7324429215115618
+            }
+        },
+        "time": "0:00:04",
+        "trial_id": 2,
+        "tuning_time": "0:00:32"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.2368040226368552,
+                "d_ffn_factor": 2.268488170625955,
+                "d_token": 296,
+                "ffn_dropout": 0.3902645881432277,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 3,
+                "prenormalization": true,
+                "residual_dropout": 0.1279842042655048
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 1.935114088559527e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 0.0006823493012435792
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 2864571,
+        "best_epoch": 7,
+        "metrics": {
+            "train": {
+                "rmse": 0.8344939262958959,
+                "score": -0.8344939262958959
+            },
+            "val": {
+                "rmse": 0.8358689294560561,
+                "score": -0.8358689294560561
+            },
+            "test": {
+                "rmse": 0.704957130446366,
+                "score": -0.704957130446366
+            }
+        },
+        "time": "0:00:03",
+        "trial_id": 3,
+        "tuning_time": "0:00:40"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.2609241608750358,
+                "d_ffn_factor": 1.495990546647714,
+                "d_token": 344,
+                "ffn_dropout": 0.09316617166337998,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 3,
+                "prenormalization": true,
+                "residual_dropout": 0.04331007088487437
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 1.863958963573057e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 9.384756816024658e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 3039573,
+        "best_epoch": 17,
+        "metrics": {
+            "train": {
+                "rmse": 0.6923660539936943,
+                "score": -0.6923660539936943
+            },
+            "val": {
+                "rmse": 0.796069880171234,
+                "score": -0.796069880171234
+            },
+            "test": {
+                "rmse": 0.6923504451387515,
+                "score": -0.6923504451387515
+            }
+        },
+        "time": "0:00:04",
+        "trial_id": 4,
+        "tuning_time": "0:00:50"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.07483743359184158,
+                "d_ffn_factor": 1.111309443169842,
+                "d_token": 200,
+                "ffn_dropout": 0.4718740392573121,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 2,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 5.236194873419148e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 2.046896396312669e-05
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 600089,
+        "best_epoch": 29,
+        "metrics": {
+            "train": {
+                "rmse": 0.76857837790969,
+                "score": -0.76857837790969
+            },
+            "val": {
+                "rmse": 0.8492680868677668,
+                "score": -0.8492680868677668
+            },
+            "test": {
+                "rmse": 0.6768531872919853,
+                "score": -0.6768531872919853
+            }
+        },
+        "time": "0:00:02",
+        "trial_id": 5,
+        "tuning_time": "0:00:57"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.3488155979636324,
+                "d_ffn_factor": 0.7871176099252063,
+                "d_token": 344,
+                "ffn_dropout": 0.3265700178989688,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 4,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 5.203605139233061e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 0.0001786727919041256
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 3038305,
+        "best_epoch": 14,
+        "metrics": {
+            "train": {
+                "rmse": 0.7054568194610056,
+                "score": -0.7054568194610056
+            },
+            "val": {
+                "rmse": 0.7956063353131695,
+                "score": -0.7956063353131695
+            },
+            "test": {
+                "rmse": 0.6876233977317816,
+                "score": -0.6876233977317816
+            }
+        },
+        "time": "0:00:04",
+        "trial_id": 6,
+        "tuning_time": "0:01:07"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.3039153343577339,
+                "d_ffn_factor": 1.316761124683372,
+                "d_token": 400,
+                "ffn_dropout": 0.2193007567311602,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 1,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 1.599888149263149e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 4.232824558620124e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 1294253,
+        "best_epoch": 83,
+        "metrics": {
+            "train": {
+                "rmse": 0.6874967877109606,
+                "score": -0.6874967877109606
+            },
+            "val": {
+                "rmse": 0.7846696139847351,
+                "score": -0.7846696139847351
+            },
+            "test": {
+                "rmse": 0.6566718447137119,
+                "score": -0.6566718447137119
+            }
+        },
+        "time": "0:00:05",
+        "trial_id": 7,
+        "tuning_time": "0:01:17"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.08065475894249813,
+                "d_ffn_factor": 1.972883317597463,
+                "d_token": 384,
+                "ffn_dropout": 0.2071842941131844,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 1,
+                "prenormalization": true,
+                "residual_dropout": 0.1247020202263737
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 4.742586160938567e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 0.0001057443000344446
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 1484523,
+        "best_epoch": 35,
+        "metrics": {
+            "train": {
+                "rmse": 0.6925852167862266,
+                "score": -0.6925852167862266
+            },
+            "val": {
+                "rmse": 0.7901257685323938,
+                "score": -0.7901257685323938
+            },
+            "test": {
+                "rmse": 0.6690799480946463,
+                "score": -0.6690799480946463
+            }
+        },
+        "time": "0:00:03",
+        "trial_id": 8,
+        "tuning_time": "0:01:26"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.158600871034648,
+                "d_ffn_factor": 2.223357630718485,
+                "d_token": 344,
+                "ffn_dropout": 0.1843625853304821,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 2,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 1.563876852642779e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 0.0003264635677523522
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 2548657,
+        "best_epoch": 34,
+        "metrics": {
+            "train": {
+                "rmse": 0.6382994699840583,
+                "score": -0.6382994699840583
+            },
+            "val": {
+                "rmse": 0.8181274722370759,
+                "score": -0.8181274722370759
+            },
+            "test": {
+                "rmse": 0.7182066991248991,
+                "score": -0.7182066991248991
+            }
+        },
+        "time": "0:00:04",
+        "trial_id": 9,
+        "tuning_time": "0:01:35"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.4703360630237012,
+                "d_ffn_factor": 2.616426422641507,
+                "d_token": 496,
+                "ffn_dropout": 0.01491930013508161,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 1,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 0.0008740028678917092,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 1.192610952293138e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 2943875,
+        "best_epoch": 38,
+        "metrics": {
+            "train": {
+                "rmse": 0.6607855756621219,
+                "score": -0.6607855756621219
+            },
+            "val": {
+                "rmse": 0.7949299825727312,
+                "score": -0.7949299825727312
+            },
+            "test": {
+                "rmse": 0.7383022418617293,
+                "score": -0.7383022418617293
+            }
+        },
+        "time": "0:00:03",
+        "trial_id": 10,
+        "tuning_time": "0:01:45"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.4153576490856576,
+                "d_ffn_factor": 1.785543253181353,
+                "d_token": 424,
+                "ffn_dropout": 0.2559539953236849,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 1,
+                "prenormalization": true,
+                "residual_dropout": 0.1967304322196611
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 0.0001887158727970808,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 9.396843399579035e-05
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 1706843,
+        "best_epoch": 28,
+        "metrics": {
+            "train": {
+                "rmse": 0.7054129370780957,
+                "score": -0.7054129370780957
+            },
+            "val": {
+                "rmse": 0.8271094354279173,
+                "score": -0.8271094354279173
+            },
+            "test": {
+                "rmse": 0.6812528917475996,
+                "score": -0.6812528917475996
+            }
+        },
+        "time": "0:00:02",
+        "trial_id": 11,
+        "tuning_time": "0:01:52"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.1436182472973438,
+                "d_ffn_factor": 1.62025602876496,
+                "d_token": 416,
+                "ffn_dropout": 0.2301467141680924,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 1,
+                "prenormalization": true,
+                "residual_dropout": 0.1947341697672369
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 1.073700396913846e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 1.252376568403323e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 1557605,
+        "best_epoch": 101,
+        "metrics": {
+            "train": {
+                "rmse": 0.7356011977370729,
+                "score": -0.7356011977370729
+            },
+            "val": {
+                "rmse": 0.8025302634084056,
+                "score": -0.8025302634084056
+            },
+            "test": {
+                "rmse": 0.6722991289047625,
+                "score": -0.6722991289047625
+            }
+        },
+        "time": "0:00:07",
+        "trial_id": 12,
+        "tuning_time": "0:02:04"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.3565842683607399,
+                "d_ffn_factor": 1.834679892174147,
+                "d_token": 216,
+                "ffn_dropout": 0.1105535838984388,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 1,
+                "prenormalization": true,
+                "residual_dropout": 0.05851815952767776
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 0.0002969276191510387,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 4.388910785538708e-05
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 455905,
+        "best_epoch": 21,
+        "metrics": {
+            "train": {
+                "rmse": 0.7176527564237553,
+                "score": -0.7176527564237553
+            },
+            "val": {
+                "rmse": 0.8108463486379159,
+                "score": -0.8108463486379159
+            },
+            "test": {
+                "rmse": 0.6796268521285524,
+                "score": -0.6796268521285524
+            }
+        },
+        "time": "0:00:01",
+        "trial_id": 13,
+        "tuning_time": "0:02:11"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.1738386502713913,
+                "d_ffn_factor": 1.332212844395249,
+                "d_token": 416,
+                "ffn_dropout": 0.2801819966174637,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 1,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 3.554308357346759e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 3.428248835875811e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 1407605,
+        "best_epoch": 37,
+        "metrics": {
+            "train": {
+                "rmse": 0.7061704004822664,
+                "score": -0.7061704004822664
+            },
+            "val": {
+                "rmse": 0.7903170377508465,
+                "score": -0.7903170377508465
+            },
+            "test": {
+                "rmse": 0.6840429860982179,
+                "score": -0.6840429860982179
+            }
+        },
+        "time": "0:00:03",
+        "trial_id": 14,
+        "tuning_time": "0:02:20"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.3256061040619413,
+                "d_ffn_factor": 2.551475230568528,
+                "d_token": 512,
+                "ffn_dropout": 0.168347381229898,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 2,
+                "prenormalization": true,
+                "residual_dropout": 0.09286448730084465
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 3.259625380515205e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 5.239164107331247e-05
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 6147177,
+        "best_epoch": 11,
+        "metrics": {
+            "train": {
+                "rmse": 0.6832801050571242,
+                "score": -0.6832801050571242
+            },
+            "val": {
+                "rmse": 0.7952456003568532,
+                "score": -0.7952456003568532
+            },
+            "test": {
+                "rmse": 0.7276588937504691,
+                "score": -0.7276588937504691
+            }
+        },
+        "time": "0:00:03",
+        "trial_id": 15,
+        "tuning_time": "0:02:29"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.198221418102808,
+                "d_ffn_factor": 1.924710321149074,
+                "d_token": 248,
+                "ffn_dropout": 0.3235191503936157,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 1,
+                "prenormalization": true,
+                "residual_dropout": 0.001376096694771858
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 1.041766914856377e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 1.844632862470137e-05
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 615499,
+        "best_epoch": 222,
+        "metrics": {
+            "train": {
+                "rmse": 0.6941493318966147,
+                "score": -0.6941493318966147
+            },
+            "val": {
+                "rmse": 0.8160505833818911,
+                "score": -0.8160505833818911
+            },
+            "test": {
+                "rmse": 0.6873752500282958,
+                "score": -0.6873752500282958
+            }
+        },
+        "time": "0:00:09",
+        "trial_id": 16,
+        "tuning_time": "0:02:44"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.103050773189612,
+                "d_ffn_factor": 0.9979176079390157,
+                "d_token": 384,
+                "ffn_dropout": 0.1033834056825564,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 2,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 8.730522377827139e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 2.895162238347465e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 2088189,
+        "best_epoch": 7,
+        "metrics": {
+            "train": {
+                "rmse": 0.6776962446551883,
+                "score": -0.6776962446551883
+            },
+            "val": {
+                "rmse": 0.7786552885767511,
+                "score": -0.7786552885767511
+            },
+            "test": {
+                "rmse": 0.7013551993444503,
+                "score": -0.7013551993444503
+            }
+        },
+        "time": "0:00:02",
+        "trial_id": 17,
+        "tuning_time": "0:02:51"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.4250122589351258,
+                "d_ffn_factor": 1.013895554967542,
+                "d_token": 456,
+                "ffn_dropout": 0.005300180363307733,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 3,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 0.0004679314535788768,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 3.098604820217249e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 4427341,
+        "best_epoch": 21,
+        "metrics": {
+            "train": {
+                "rmse": 0.6336783599174232,
+                "score": -0.6336783599174232
+            },
+            "val": {
+                "rmse": 0.8006979226863774,
+                "score": -0.8006979226863774
+            },
+            "test": {
+                "rmse": 0.7395660197144192,
+                "score": -0.7395660197144192
+            }
+        },
+        "time": "0:00:04",
+        "trial_id": 18,
+        "tuning_time": "0:03:01"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.1108563232417382,
+                "d_ffn_factor": 0.6757770464135419,
+                "d_token": 288,
+                "ffn_dropout": 0.08754359827666242,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 2,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 9.880265693474141e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 2.748357976399622e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 1017993,
+        "best_epoch": 18,
+        "metrics": {
+            "train": {
+                "rmse": 0.6187010006354263,
+                "score": -0.6187010006354263
+            },
+            "val": {
+                "rmse": 0.7632604508434327,
+                "score": -0.7632604508434327
+            },
+            "test": {
+                "rmse": 0.7118064784037361,
+                "score": -0.7118064784037361
+            }
+        },
+        "time": "0:00:02",
+        "trial_id": 19,
+        "tuning_time": "0:03:09"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.1050629193008311,
+                "d_ffn_factor": 0.6833447410669683,
+                "d_token": 136,
+                "ffn_dropout": 0.08175229570988246,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 2,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 8.918514221191944e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 1.663945510254228e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 232113,
+        "best_epoch": 28,
+        "metrics": {
+            "train": {
+                "rmse": 0.6290657984538957,
+                "score": -0.6290657984538957
+            },
+            "val": {
+                "rmse": 0.7971102162058751,
+                "score": -0.7971102162058751
+            },
+            "test": {
+                "rmse": 0.6593886400466903,
+                "score": -0.6593886400466903
+            }
+        },
+        "time": "0:00:02",
+        "trial_id": 20,
+        "tuning_time": "0:03:17"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.008343916012632152,
+                "d_ffn_factor": 0.9655266277928899,
+                "d_token": 312,
+                "ffn_dropout": 0.1333738125844391,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 2,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 9.362912928994863e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 3.672455787318281e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 1363397,
+        "best_epoch": 10,
+        "metrics": {
+            "train": {
+                "rmse": 0.6994380425278238,
+                "score": -0.6994380425278238
+            },
+            "val": {
+                "rmse": 0.7844714783118419,
+                "score": -0.7844714783118419
+            },
+            "test": {
+                "rmse": 0.7331209331067895,
+                "score": -0.7331209331067895
+            }
+        },
+        "time": "0:00:02",
+        "trial_id": 21,
+        "tuning_time": "0:03:24"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.0145522011297429,
+                "d_ffn_factor": 0.9384489267447308,
+                "d_token": 288,
+                "ffn_dropout": 0.04510346984923107,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 2,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 9.200592579617476e-05,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 2.259125904388358e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 1149625,
+        "best_epoch": 15,
+        "metrics": {
+            "train": {
+                "rmse": 0.5778010452918191,
+                "score": -0.5778010452918191
+            },
+            "val": {
+                "rmse": 0.7536431203531387,
+                "score": -0.7536431203531387
+            },
+            "test": {
+                "rmse": 0.750965083008493,
+                "score": -0.750965083008493
+            }
+        },
+        "time": "0:00:02",
+        "trial_id": 22,
+        "tuning_time": "0:03:32"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.1198676429940249,
+                "d_ffn_factor": 0.6695137107263032,
+                "d_token": 248,
+                "ffn_dropout": 0.05309139011680018,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 3,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 0.0001952484991988785,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 7.83240601999667e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 1127661,
+        "best_epoch": 10,
+        "metrics": {
+            "train": {
+                "rmse": 0.6808601017649359,
+                "score": -0.6808601017649359
+            },
+            "val": {
+                "rmse": 0.7971526630553701,
+                "score": -0.7971526630553701
+            },
+            "test": {
+                "rmse": 0.6757925003361233,
+                "score": -0.6757925003361233
+            }
+        },
+        "time": "0:00:02",
+        "trial_id": 23,
+        "tuning_time": "0:03:40"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.05649245320622259,
+                "d_ffn_factor": 0.8876021003641384,
+                "d_token": 264,
+                "ffn_dropout": 0.04153110927030235,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 2,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 0.0001317867466676466,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 1.984666185245467e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 946057,
+        "best_epoch": 13,
+        "metrics": {
+            "train": {
+                "rmse": 0.6162197723865438,
+                "score": -0.6162197723865438
+            },
+            "val": {
+                "rmse": 0.7681727053028677,
+                "score": -0.7681727053028677
+            },
+            "test": {
+                "rmse": 0.736261280901012,
+                "score": -0.736261280901012
+            }
+        },
+        "time": "0:00:02",
+        "trial_id": 24,
+        "tuning_time": "0:03:47"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.004575667281188089,
+                "d_ffn_factor": 0.83586924364588,
+                "d_token": 176,
+                "ffn_dropout": 0.03919074838909852,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 2,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 0.0001324119892003031,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 1.85365958189526e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 414893,
+        "best_epoch": 14,
+        "metrics": {
+            "train": {
+                "rmse": 0.6149492065441857,
+                "score": -0.6149492065441857
+            },
+            "val": {
+                "rmse": 0.7670232414067891,
+                "score": -0.7670232414067891
+            },
+            "test": {
+                "rmse": 0.7250907389427694,
+                "score": -0.7250907389427694
+            }
+        },
+        "time": "0:00:02",
+        "trial_id": 25,
+        "tuning_time": "0:03:54"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.009442957868107643,
+                "d_ffn_factor": 0.7699487268577722,
+                "d_token": 200,
+                "ffn_dropout": 0.04707464247920742,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 3,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 0.0002850552509527729,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 5.592422081747966e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 770919,
+        "best_epoch": 9,
+        "metrics": {
+            "train": {
+                "rmse": 0.6225611188393926,
+                "score": -0.6225611188393926
+            },
+            "val": {
+                "rmse": 0.7550402101225404,
+                "score": -0.7550402101225404
+            },
+            "test": {
+                "rmse": 0.7732925488761891,
+                "score": -0.7732925488761891
+            }
+        },
+        "time": "0:00:02",
+        "trial_id": 26,
+        "tuning_time": "0:04:01"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.04510409203286464,
+                "d_ffn_factor": 0.7240058758035748,
+                "d_token": 128,
+                "ffn_dropout": 0.001269759437921528,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 3,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 0.0004612503017193929,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 1.280384338194157e-05
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 312489,
+        "best_epoch": 15,
+        "metrics": {
+            "train": {
+                "rmse": 0.5794516360970073,
+                "score": -0.5794516360970073
+            },
+            "val": {
+                "rmse": 0.770127156367463,
+                "score": -0.770127156367463
+            },
+            "test": {
+                "rmse": 0.7186533165306533,
+                "score": -0.7186533165306533
+            }
+        },
+        "time": "0:00:02",
+        "trial_id": 27,
+        "tuning_time": "0:04:09"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.009444368252460561,
+                "d_ffn_factor": 1.140005086151177,
+                "d_token": 168,
+                "ffn_dropout": 0.1380526434732569,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 3,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 0.0002901016136562452,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 6.507475493361961e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 640891,
+        "best_epoch": 21,
+        "metrics": {
+            "train": {
+                "rmse": 0.5508808555814699,
+                "score": -0.5508808555814699
+            },
+            "val": {
+                "rmse": 0.7830190152328668,
+                "score": -0.7830190152328668
+            },
+            "test": {
+                "rmse": 0.7611005311901856,
+                "score": -0.7611005311901856
+            }
+        },
+        "time": "0:00:02",
+        "trial_id": 28,
+        "tuning_time": "0:04:17"
+    },
+    {
+        "dataset": 541,
+        "algorithm": "ft_transformer",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": 541,
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "reglu",
+                "attention_dropout": 0.2015057439088576,
+                "d_ffn_factor": 0.6929382531468281,
+                "d_token": 280,
+                "ffn_dropout": 0.06019054418406736,
+                "initialization": "kaiming",
+                "n_heads": 8,
+                "n_layers": 4,
+                "prenormalization": true,
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 0.0009556912343506402,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 5.508656303846771e-06
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.2",
+                "torch.backends.cudnn.version()": 7605,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 378,
+        "cat_features_no": 4,
+        "num_features_no": 1,
+        "epoch_size": 2,
+        "n_parameters": 1930753,
+        "best_epoch": 59,
+        "metrics": {
+            "train": {
+                "rmse": 0.386788213893862,
+                "score": -0.386788213893862
+            },
+            "val": {
+                "rmse": 0.7926438984021544,
+                "score": -0.7926438984021544
+            },
+            "test": {
+                "rmse": 0.9501656119026904,
+                "score": -0.9501656119026904
+            }
+        },
+        "time": "0:00:06",
+        "trial_id": 29,
+        "tuning_time": "0:04:29"
+    }
+]

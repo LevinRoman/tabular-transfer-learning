@@ -1,0 +1,196 @@
+{
+    "config": {
+        "base_config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": "california_housing",
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "relu",
+                "normalization": "batchnorm"
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "optimization": {
+            "options": {
+                "n_trials": 30
+            },
+            "sampler": {
+                "seed": 0
+            },
+            "space": {
+                "model": {
+                    "d": [
+                        "int",
+                        64,
+                        512
+                    ],
+                    "d_embedding": [
+                        "int",
+                        64,
+                        512
+                    ],
+                    "d_hidden_factor": [
+                        "uniform",
+                        1.0,
+                        4.0
+                    ],
+                    "hidden_dropout": [
+                        "uniform",
+                        0.0,
+                        0.5
+                    ],
+                    "n_layers": [
+                        "int",
+                        1,
+                        8
+                    ],
+                    "residual_dropout": [
+                        "?uniform",
+                        0.0,
+                        0.0,
+                        0.5
+                    ]
+                },
+                "training": {
+                    "lr": [
+                        "loguniform",
+                        1e-05,
+                        0.01
+                    ],
+                    "weight_decay": [
+                        "?loguniform",
+                        0.0,
+                        1e-06,
+                        0.001
+                    ]
+                }
+            }
+        },
+        "program": "bin/resnet.py"
+    },
+    "environment": {
+        "devices": {
+            "CUDA_VISIBLE_DEVICES": "0",
+            "torch.version.cuda": "10.1",
+            "torch.backends.cudnn.version()": 7603,
+            "torch.cuda.nccl.version()": 2708,
+            "driver": "470.57.02",
+            "0": {
+                "name": "NVIDIA GeForce RTX 2080 Ti",
+                "total_memory": 11554717696
+            }
+        }
+    },
+    "best_stats": {
+        "dataset": "california_housing",
+        "algorithm": "resnet",
+        "config": {
+            "data": {
+                "cat_policy": "indices",
+                "dset_id": "california_housing",
+                "normalization": "quantile",
+                "task": "regression",
+                "y_policy": "mean_std"
+            },
+            "model": {
+                "activation": "relu",
+                "d": 443,
+                "d_embedding": 454,
+                "d_hidden_factor": 1.619518023274083,
+                "hidden_dropout": 0.4264390308822956,
+                "n_layers": 3,
+                "normalization": "batchnorm",
+                "residual_dropout": 0.0
+            },
+            "seed": 0,
+            "training": {
+                "batch_size": 256,
+                "eval_batch_size": 8192,
+                "lr": 0.000290440720997032,
+                "lr_n_decays": 0,
+                "n_epochs": 500,
+                "num_batch_warm_up": 0,
+                "optimizer": "adamw",
+                "patience": 30,
+                "weight_decay": 0.0
+            },
+            "transfer": {
+                "checkpoint_path": NaN,
+                "downstream_samples_per_class": NaN,
+                "epochs_warm_up_head": 0,
+                "freeze_feature_extractor": false,
+                "head_lr": NaN,
+                "layers_to_fine_tune": [],
+                "load_checkpoint": false,
+                "pretrain_proportion": 0.5,
+                "stage": "pretrain",
+                "use_mlp_head": false
+            }
+        },
+        "environment": {
+            "devices": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "torch.version.cuda": "10.1",
+                "torch.backends.cudnn.version()": 7603,
+                "torch.cuda.nccl.version()": 2708,
+                "driver": "470.57.02",
+                "0": {
+                    "name": "NVIDIA GeForce RTX 2080 Ti",
+                    "total_memory": 11554717696
+                }
+            }
+        },
+        "replacement_sampling": false,
+        "num_classes_train": NaN,
+        "num_classes_test": NaN,
+        "num_training_samples": 6758,
+        "cat_features_no": 0,
+        "num_features_no": 8,
+        "epoch_size": 27,
+        "n_parameters": 1917241,
+        "best_epoch": 100,
+        "metrics": {
+            "train": {
+                "rmse": 0.1715959874812486,
+                "score": -0.1715959874812486
+            },
+            "val": {
+                "rmse": 0.20042141647861003,
+                "score": -0.20042141647861003
+            },
+            "test": {
+                "rmse": 0.2158398705356559,
+                "score": -0.2158398705356559
+            }
+        },
+        "time": "0:00:24",
+        "trial_id": 18,
+        "tuning_time": "0:10:21"
+    },
+    "time": "0:15:20"
+}

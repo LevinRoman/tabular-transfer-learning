@@ -185,10 +185,18 @@ class Dataset:
             ohe = sklearn.preprocessing.OneHotEncoder(
                 handle_unknown='ignore', sparse=False, dtype='float32'  # type: ignore[code]
             )
-            ohe.fit(full_cat_data_for_encoder)#fit(C['train'])
-            C = {k: ohe.transform(v) for k, v in C.items()}
-            result = C if N is None else {x: np.hstack((N[x], C[x])) for x in N}
-            print(result['train'])
+            ohe.fit(full_cat_data_for_encoder.astype('str'))#fit(C['train'])
+            C = {k: ohe.transform(v.astype('str')) for k, v in C.items()}
+            if N is None:
+                result = C
+            elif C is None:
+                result = N
+            elif (C is not None) and (N is not None):
+                result = {x: np.hstack((N[x], C[x])) for x in N}
+            else:
+                raise ValueError('C and N cannot be both NaNs')
+            # result = C if N is None else {x: np.hstack((N[x], C[x])) for x in N}
+            # print(result['train'])
         elif cat_policy == 'counter':
             raise NotImplementedError('Counter policy for categorical features has not been adjusted for the transfer learning setting')
             assert seed is not None

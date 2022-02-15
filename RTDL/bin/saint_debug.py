@@ -329,12 +329,12 @@ class SAINT(nn.Module):
                 style = attentiontype
             )
 
-        l = input_size // 8
-        hidden_dimensions = list(map(lambda t: l * t, mlp_hidden_mults))
-        all_dimensions = [input_size, *hidden_dimensions, dim_out]
+        # l = input_size // 8
+        # hidden_dimensions = list(map(lambda t: l * t, mlp_hidden_mults))
+        # all_dimensions = [input_size, *hidden_dimensions, dim_out]
 
         # MLP for the last layer (?)
-        self.mlp = MLP(all_dimensions, act = mlp_act)
+        # self.mlp = MLP(all_dimensions, act = mlp_act)
         # Embedding layer for all features (unique cat tokens + special tokens)
         self.embeds = nn.Embedding(self.total_tokens, self.dim) #.to(device)
 
@@ -357,18 +357,18 @@ class SAINT(nn.Module):
         self.single_mask = nn.Embedding(2, self.dim)
         self.pos_encodings = nn.Embedding(self.num_categories+ self.num_continuous, self.dim)
 
-        if self.final_mlp_style == 'common':
-            self.mlp1 = simple_MLP([dim,(self.total_tokens)*2, self.total_tokens])
-            self.mlp2 = simple_MLP([dim ,(self.num_continuous), 1])
-
-        else:
-            self.mlp1 = sep_MLP(dim,self.num_categories,self.categories)
-            self.mlp2 = sep_MLP(dim,self.num_continuous,np.ones(self.num_continuous).astype(int))
+        # if self.final_mlp_style == 'common':
+        #     self.mlp1 = simple_MLP([dim,(self.total_tokens)*2, self.total_tokens])
+        #     self.mlp2 = simple_MLP([dim ,(self.num_continuous), 1])
+        #
+        # else:
+        #     self.mlp1 = sep_MLP(dim,self.num_categories,self.categories)
+        #     self.mlp2 = sep_MLP(dim,self.num_continuous,np.ones(self.num_continuous).astype(int))
 
 
         self.mlpfory = simple_MLP([dim ,1000, y_dim])
-        self.pt_mlp = simple_MLP([dim*(self.num_continuous+self.num_categories) ,6*dim*(self.num_continuous+self.num_categories)//5, dim*(self.num_continuous+self.num_categories)//2])
-        self.pt_mlp2 = simple_MLP([dim*(self.num_continuous+self.num_categories) ,6*dim*(self.num_continuous+self.num_categories)//5, dim*(self.num_continuous+self.num_categories)//2])
+        # self.pt_mlp = simple_MLP([dim*(self.num_continuous+self.num_categories) ,6*dim*(self.num_continuous+self.num_categories)//5, dim*(self.num_continuous+self.num_categories)//2])
+        # self.pt_mlp2 = simple_MLP([dim*(self.num_continuous+self.num_categories) ,6*dim*(self.num_continuous+self.num_categories)//5, dim*(self.num_continuous+self.num_categories)//2])
 
     def embed_data_mask(self, x_categ, x_cont, cat_mask, con_mask):
         '''

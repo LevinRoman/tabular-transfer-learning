@@ -1,0 +1,38 @@
+seed = 0
+
+[data]
+cat_policy = 'ohe'
+dset_id = 'california_housing'
+task = 'regression'
+y_policy = 'mean_std'
+
+[fit]
+early_stopping_rounds = 50
+verbose = false
+
+[model]
+alpha = 0.08915059237542323
+booster = 'gbtree'
+colsample_bylevel = 0.6085205952572428
+colsample_bytree = 0.8847712135826148
+gamma = 0.0002676460406083956
+lambda = 0.0001017719918939481
+learning_rate = 0.007994291768961935
+max_depth = 8
+min_child_weight = 0.0003841636426154251
+n_estimators = 2000
+n_jobs = -1
+subsample = 0.6581685080041433
+tree_method = 'gpu_hist'
+
+[transfer]
+checkpoint_path = nan
+downstream_samples_per_class = nan
+epochs_warm_up_head = 0
+freeze_feature_extractor = false
+head_lr = nan
+layers_to_fine_tune = []
+load_checkpoint = false
+pretrain_proportion = 0.5
+stage = 'pretrain'
+use_mlp_head = false

@@ -10,6 +10,7 @@ import torch.nn.functional as F
 import torch.nn.init as nn_init
 import zero
 from torch import Tensor
+import os
 
 import lib
 
@@ -665,3 +666,6 @@ if __name__ == "__main__":
     stats['time'] = lib.format_seconds(timer())
     save_checkpoint(True)
     print('Done!')
+
+    if 'downstream' in args['transfer']['stage']:
+        os.remove(checkpoint_path)

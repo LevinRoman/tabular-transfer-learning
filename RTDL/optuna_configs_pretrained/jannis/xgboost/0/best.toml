@@ -1,0 +1,37 @@
+seed = 0
+
+[data]
+cat_policy = 'ohe'
+dset_id = 'jannis'
+task = 'multiclass'
+
+[fit]
+early_stopping_rounds = 50
+verbose = false
+
+[model]
+alpha = 3.504877329758994e-07
+booster = 'gbtree'
+colsample_bylevel = 0.9008000724229934
+colsample_bytree = 0.7316588857353525
+gamma = 7.349456875164588e-05
+lambda = 0
+learning_rate = 0.05184666271772755
+max_depth = 8
+min_child_weight = 1.017586864842497e-08
+n_estimators = 2000
+n_jobs = -1
+subsample = 0.9999625566238659
+tree_method = 'gpu_hist'
+
+[transfer]
+checkpoint_path = nan
+downstream_samples_per_class = nan
+epochs_warm_up_head = 0
+freeze_feature_extractor = false
+head_lr = nan
+layers_to_fine_tune = []
+load_checkpoint = false
+pretrain_proportion = 0.5
+stage = 'pretrain'
+use_mlp_head = false

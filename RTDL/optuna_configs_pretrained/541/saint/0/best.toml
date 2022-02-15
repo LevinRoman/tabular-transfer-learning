@@ -1,0 +1,41 @@
+seed = 0
+
+[data]
+cat_policy = 'indices'
+dset_id = 541
+normalization = 'quantile'
+task = 'regression'
+y_policy = 'mean_std'
+
+[model]
+attentiontype = 'colrow'
+attn_dropout = 0.2777758978390804
+cont_embeddings = 'MLP'
+depth = 1
+embed_dim = 85
+ff_dropout = 0.7872089418837722
+final_mlp_style = 'sep'
+heads = 5
+use_cls = true
+
+[training]
+batch_size = 348
+lr = 3.904764245773741e-05
+lr_n_decays = 0
+n_epochs = 500
+num_batch_warm_up = 0
+optimizer = 'adamw'
+patience = 30
+weight_decay = 2.487693986981785e-06
+
+[transfer]
+checkpoint_path = nan
+downstream_samples_per_class = nan
+epochs_warm_up_head = 0
+freeze_feature_extractor = false
+head_lr = nan
+layers_to_fine_tune = []
+load_checkpoint = false
+pretrain_proportion = 0.5
+stage = 'pretrain'
+use_mlp_head = false

@@ -451,12 +451,12 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
     replacement_sampling = False
     if 'downstream' in stage:
         #switching to downstream_samples_per_class
-        if (downstream_samples_per_class*len(set(y)) <= len(X[X.Set=="train"])):# or (ds_id in ['aloi']): #aloi is huge 1000 classes, don't wanna oversample
+        if (downstream_samples_per_class*(len(set(y)) if task == 'multiclass' else 5) <= len(X[X.Set=="train"])):# or (ds_id in ['aloi']): #aloi is huge 1000 classes, don't wanna oversample
             #sample without replacement
             if (task == 'multiclass') or (task == 'binclass'):
                 train_indices = X[X.Set=="train"].sample(n=downstream_samples_per_class*len(set(y)), random_state = seed).index
             elif task == 'regression':
-                train_indices = X[X.Set == "train"].sample(n=downstream_samples_per_class * 1, random_state=seed).index
+                train_indices = X[X.Set == "train"].sample(n=downstream_samples_per_class * 5, random_state=seed).index
             else:
                 raise ValueError('Task should be multiclass, binclass or regression. You are using {}'.format(task))
             replacement_sampling = False

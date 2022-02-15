@@ -1,0 +1,34 @@
+seed = 0
+
+[data]
+cat_policy = 'indices'
+dset_id = 1483
+task = 'multiclass'
+
+[fit]
+logging_level = 'Verbose'
+
+[model]
+bagging_temperature = 0.1776038529551313
+depth = 6
+early_stopping_rounds = 50
+iterations = 2000
+l2_leaf_reg = 5.347335549695732
+leaf_estimation_iterations = 6
+learning_rate = 0.4289177624567205
+metric_period = 10
+od_pval = 0.001
+task_type = 'GPU'
+thread_count = 1
+
+[transfer]
+checkpoint_path = nan
+downstream_samples_per_class = nan
+epochs_warm_up_head = 0
+freeze_feature_extractor = false
+head_lr = nan
+layers_to_fine_tune = []
+load_checkpoint = false
+pretrain_proportion = 0.5
+stage = 'pretrain'
+use_mlp_head = false

@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import math
 import typing as ty
 from pathlib import Path
@@ -842,3 +843,6 @@ if __name__ == "__main__":
     stats['time'] = lib.format_seconds(timer())
     save_checkpoint(True)
     print('Done!')
+
+    if 'downstream' in args['transfer']['stage']:
+        os.remove(checkpoint_path)

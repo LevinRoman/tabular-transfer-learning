@@ -1,0 +1,35 @@
+seed = 0
+
+[data]
+cat_policy = 'indices'
+dset_id = 541
+task = 'regression'
+y_policy = 'mean_std'
+
+[fit]
+logging_level = 'Verbose'
+
+[model]
+bagging_temperature = 0.9532972056958267
+depth = 9
+early_stopping_rounds = 50
+iterations = 2000
+l2_leaf_reg = 1.42686169816731
+leaf_estimation_iterations = 5
+learning_rate = 0.2228979113721456
+metric_period = 10
+od_pval = 0.001
+task_type = 'GPU'
+thread_count = 1
+
+[transfer]
+checkpoint_path = nan
+downstream_samples_per_class = nan
+epochs_warm_up_head = 0
+freeze_feature_extractor = false
+head_lr = nan
+layers_to_fine_tune = []
+load_checkpoint = false
+pretrain_proportion = 0.5
+stage = 'pretrain'
+use_mlp_head = false

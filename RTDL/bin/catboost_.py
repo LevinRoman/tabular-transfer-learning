@@ -22,7 +22,41 @@ dset_id = args['data']['dset_id']
 stats = lib.load_json(output / 'stats.json')
 stats.update({'dataset': dset_id, 'algorithm': Path(__file__).stem})
 
-N, C, y, info = lib.data_prep_openml(ds_id = dset_id, seed = args['seed'], task = args['data']['task'], datasplit=[.65, .15, .2])
+#####################################################################################
+# TRANSFER#
+#####################################################################################
+N, C, y, info, full_cat_data_for_encoder = lib.data_prep_openml_transfer(ds_id=dset_id,
+                                                                         seed=args['seed'],
+                                                                         task=args['data']['task'],
+                                                                         stage=args['transfer']['stage'],
+                                                                         datasplit=[.65, .15, .2],
+                                                                         pretrain_proportion=args['transfer'][
+                                                                             'pretrain_proportion'],
+                                                                         downstream_samples_per_class=args['transfer'][
+                                                                             'downstream_samples_per_class'])
+#####################################################################################
+# TRANSFER#
+#####################################################################################
+
+stats['replacement_sampling'] = info['replacement_sampling']
+if args['data']['task'] == 'multiclass':
+    stats['num_classes_train'] = len(set(y['train']))
+    stats['num_classes_test'] = len(set(y['test']))
+else:
+    stats['num_classes_train'] = np.nan
+    stats['num_classes_test'] = np.nan
+
+stats['num_training_samples'] = len(y['train'])
+if C is not None:
+    stats['cat_features_no'] = C['train'].shape[1]
+else:
+    stats['cat_features_no'] = 0
+if N is not None:
+    stats['num_features_no'] = N['train'].shape[1]
+else:
+    stats['num_features_no'] = 0
+
+
 D = lib.Dataset(N, C, y, info)
 X = D.build_X(
     normalization=args['data'].get('normalization'),
@@ -31,6 +65,7 @@ X = D.build_X(
     cat_policy=args['data'].get('cat_policy', 'indices'),
     cat_min_frequency=args['data'].get('cat_min_frequency', 0.0),
     seed=args['seed'],
+    full_cat_data_for_encoder = full_cat_data_for_encoder
 )
 
 zero.set_randomness(args['seed'])
@@ -81,12 +116,19 @@ else:
 
 timer = zero.Timer()
 timer.run()
-model.fit(
-    X[lib.TRAIN],
-    Y[lib.TRAIN],
-    **args['fit'],
-    eval_set=(X[lib.VAL], Y[lib.VAL]),
-)
+if 'downstream' in args['transfer']['stage']:
+    model.fit(
+        X[lib.TRAIN],
+        Y[lib.TRAIN],
+        **args['fit']
+    )
+else:
+    model.fit(
+        X[lib.TRAIN],
+        Y[lib.TRAIN],
+        **args['fit'],
+        eval_set=(X[lib.VAL], Y[lib.VAL]),
+    )
 if Path('catboost_info').exists():
     shutil.rmtree('catboost_info')
 
@@ -102,3 +144,6 @@ for part in X:
 stats['time'] = lib.format_seconds(timer())
 lib.dump_stats(stats, output, True)
 lib.backup_output(output)
+
+# if 'downstream' in args['transfer']['stage']:
+#     os.remove(output / 'checkpoint.pt')

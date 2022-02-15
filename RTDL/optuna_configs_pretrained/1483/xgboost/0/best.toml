@@ -1,0 +1,37 @@
+seed = 0
+
+[data]
+cat_policy = 'ohe'
+dset_id = 1483
+task = 'multiclass'
+
+[fit]
+early_stopping_rounds = 50
+verbose = false
+
+[model]
+alpha = 1.267883674613539e-08
+booster = 'gbtree'
+colsample_bylevel = 0.895267137433689
+colsample_bytree = 0.8261291217181433
+gamma = 1.139882916866512e-08
+lambda = 0
+learning_rate = 0.4686625810023762
+max_depth = 6
+min_child_weight = 2.240215653061847e-05
+n_estimators = 2000
+n_jobs = -1
+subsample = 0.8139316778738023
+tree_method = 'gpu_hist'
+
+[transfer]
+checkpoint_path = nan
+downstream_samples_per_class = nan
+epochs_warm_up_head = 0
+freeze_feature_extractor = false
+head_lr = nan
+layers_to_fine_tune = []
+load_checkpoint = false
+pretrain_proportion = 0.5
+stage = 'pretrain'
+use_mlp_head = false
