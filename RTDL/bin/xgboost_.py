@@ -65,7 +65,7 @@ X = D.build_X(
 )
 if C is None:
     X = X[0]
-print(X)
+
 assert isinstance(X, dict)
 zero.set_randomness(args['seed'])
 Y, y_info = D.build_y(args['data'].get('y_policy'))
@@ -97,7 +97,7 @@ else:
 # Fit model
 timer = zero.Timer()
 timer.run()
-print(set(Y[lib.TRAIN]))
+
 model.fit(X[lib.TRAIN], Y[lib.TRAIN].astype('int'), **fit_kwargs)
 
 # Save model and metrics

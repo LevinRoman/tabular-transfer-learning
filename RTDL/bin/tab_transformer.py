@@ -1,4 +1,5 @@
 # Code from https://github.com/lucidrains/tab-transformer-pytorch
+import numpy as np
 from torch import nn, einsum
 from einops import rearrange
 import math
@@ -7,7 +8,7 @@ from pathlib import Path
 import torch
 import torch.nn.functional as F
 import zero
-import numpy as np
+
 import lib
 
 # helpers
@@ -540,6 +541,8 @@ if __name__ == "__main__":
         epoch_losses = []
         cur_batch = 0
         for batch_idx in epoch:
+            if len(batch_idx) == 1:
+                continue
 
             ###########
             # Transfer: head warmup
@@ -571,7 +574,7 @@ if __name__ == "__main__":
 
             optimizer.zero_grad()
             model_output = model(X_cat_batch, X_num_batch)
-            loss = loss_fn(model_output, Y_device['train'][batch_idx])
+            loss = loss_fn(model_output.squeeze(), Y_device['train'][batch_idx])
             loss.backward()
             optimizer.step()
             epoch_losses.append(loss.detach())
