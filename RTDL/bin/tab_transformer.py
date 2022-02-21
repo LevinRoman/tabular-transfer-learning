@@ -384,13 +384,14 @@ if __name__ == "__main__":
     #####################################################################################
     # TRANSFER#
     #####################################################################################
-    if ('downstream' in args['transfer']['stage']) and (args['transfer']['load_checkpoint']):
-        print('Loading checkpoint, doing transfer learning')
-        pretrain_checkpoint = torch.load(args['transfer']['checkpoint_path'])
+    if ('downstream' in args['transfer']['stage']):
+        if (args['transfer']['load_checkpoint']):
+            print('Loading checkpoint, doing transfer learning')
+            pretrain_checkpoint = torch.load(args['transfer']['checkpoint_path'])
 
-        pretrained_feature_extractor_dict = {k: v for k, v in pretrain_checkpoint['model'].items() if head_name not in k}
-        missing_keys, unexpected_keys = model.load_state_dict(pretrained_feature_extractor_dict, strict=False)
-        print('\n Loaded \n Missing keys:{}\n Unexpected keys:{}'.format(missing_keys, unexpected_keys))
+            pretrained_feature_extractor_dict = {k: v for k, v in pretrain_checkpoint['model'].items() if head_name not in k}
+            missing_keys, unexpected_keys = model.load_state_dict(pretrained_feature_extractor_dict, strict=False)
+            print('\n Loaded \n Missing keys:{}\n Unexpected keys:{}'.format(missing_keys, unexpected_keys))
         # except:
         #     model.load_state_dict(lib.remove_parallel(pretrain_checkpoint['model']))
 
