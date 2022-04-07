@@ -1,0 +1,43 @@
+seed = 0
+
+[data]
+cat_policy = "indices"
+dset_id = 'mimic'
+normalization = "quantile"
+task = "binclass"
+
+[model]
+activation = "reglu"
+attention_dropout = 0.2
+d_ffn_factor = 1.3333333333333333
+d_token = 192
+ffn_dropout = 0.1
+initialization = "kaiming"
+n_heads = 8
+n_layers = 3
+prenormalization = true
+residual_dropout = 0.0
+
+[training]
+batch_size = 256
+eval_batch_size = 256
+lr = 0.0001
+lr_n_decays = 0
+n_epochs = 100
+num_batch_warm_up = 0
+optimizer = "adamw"
+patience = 500
+weight_decay = 1e-5
+SWA = false
+
+[transfer]
+checkpoint_path = nan
+downstream_samples_per_class = nan
+epochs_warm_up_head = 0
+freeze_feature_extractor = false
+head_lr = nan
+layers_to_fine_tune = []
+load_checkpoint = false
+pretrain_proportion = 0#use this to specify mimic experiment (0-11)
+stage = "pretrain"
+use_mlp_head = false

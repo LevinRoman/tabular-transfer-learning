@@ -11,7 +11,8 @@ import torch.nn.init as nn_init
 import zero
 from torch import Tensor
 import os
-
+from torch.optim.swa_utils import AveragedModel, SWALR
+from torch.optim.lr_scheduler import CosineAnnealingLR
 import lib
 
 
@@ -337,8 +338,7 @@ if __name__ == "__main__":
                                                   stage=args['transfer']['stage'],
                                                   datasplit=[.65, .15, .2],
                                                   pretrain_proportion=args['transfer']['pretrain_proportion'],
-                                                  downstream_samples_per_class=args['transfer']['downstream_samples_per_class'],
-                                                  pretrain_subsample = args['transfer']['pretrain_subsample'])
+                                                  downstream_samples_per_class=args['transfer']['downstream_samples_per_class'])
     #####################################################################################
     # TRANSFER#
     #####################################################################################
@@ -524,6 +524,12 @@ if __name__ == "__main__":
     timer = zero.Timer()
     checkpoint_path = output / 'checkpoint.pt'
 
+    if args['training']['SWA']:
+        swa_model = AveragedModel(model)
+        scheduler = CosineAnnealingLR(optimizer, T_max=100)
+        swa_start = 10
+        swa_scheduler = SWALR(optimizer, swa_lr=1e-3)
+
     def print_epoch_info():
         print(f'\n>>> Epoch {stream.epoch} | {lib.format_seconds(timer())} | {output}')
         print(
@@ -586,7 +592,8 @@ if __name__ == "__main__":
         lib.dump_stats(stats, output, final)
         lib.backup_output(output)
 
-   # %%
+
+    # %%
     timer.run()
     epoch_idx = 0
     #If doing head warmup
@@ -635,6 +642,13 @@ if __name__ == "__main__":
             loss = loss_fn(model_output, Y_device['train'][batch_idx])
             loss.backward()
             optimizer.step()
+            if args['training']['SWA']:
+                if epoch_idx > swa_start:
+                    swa_model.update_parameters(model)
+                    swa_scheduler.step()
+                # else:
+                #     scheduler.step()
+
             epoch_losses.append(loss.detach())
             cur_batch += 1
 

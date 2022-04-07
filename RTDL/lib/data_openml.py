@@ -7,189 +7,8 @@ import random
 import pandas as pd
 import lib
 import torch
-
-def get_cont_cat_features(dataset_id):
-    if dataset_id == 6:
-        #this one does not work for some reason
-        continuous_cols = []
-        cat_embed_cols = ['x-box', 'y-box', 'width', 'high', 'onpix', 'x-bar', 'y-bar',
-                           'x2bar', 'y2bar', 'xybar', 'x2ybr', 'xy2br', 'x-ege', 'xegvy',
-                           'y-ege', 'yegvx']
-    if dataset_id == 261:
-        cat_embed_cols = []
-        continuous_cols = ['input1', 'input2', 'input3', 'input4', 'input5', 'input6',
-                           'input7', 'input8', 'input9', 'input10', 'input11', 'input12',
-                           'input13', 'input14', 'input15', 'input16']
-    if dataset_id == 42078:
-        cat_embed_cols = []
-        continuous_cols = ['brewery_id', '']
-    if dataset_id == 1381:
-        cat_embed_cols = []
-        continuous_cols = ['x-box', 'y-box', 'width', 'high', 'onpix', 'x-bar',
-                          'y-bar', 'x2bar', 'y2bar', 'xybar', 'x2ybr', 'xy2br',
-                          'x-ege', 'xegvy', 'y-ege', 'yegvx']
-    if dataset_id == 1113:
-        cat_embed_cols = ['protocol_type', 'flag', 'land', 'logged_in', 'is_host_login', 'is_guest_login']
-        #'service',
-        continuous_cols = ['duration', 'src_bytes', 'dst_bytes', 'wrong_fragment', 'urgent',
-       'hot', 'num_failed_logins', 'lnum_compromised', 'lroot_shell',
-       'lsu_attempted', 'lnum_root', 'lnum_file_creations', 'lnum_shells',
-       'lnum_access_files', 'lnum_outbound_cmds', 'count', 'srv_count',
-       'serror_rate', 'srv_serror_rate', 'rerror_rate', 'srv_rerror_rate',
-       'same_srv_rate', 'diff_srv_rate', 'srv_diff_host_rate',
-       'dst_host_count', 'dst_host_srv_count', 'dst_host_same_srv_rate',
-       'dst_host_diff_srv_rate', 'dst_host_same_src_port_rate',
-       'dst_host_srv_diff_host_rate', 'dst_host_serror_rate',
-       'dst_host_srv_serror_rate', 'dst_host_rerror_rate',
-       'dst_host_srv_rerror_rate']
-    if dataset_id == 1503:
-        cat_embed_cols = ['V14']
-        continuous_cols = ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10', 'V11', 'V12', 'V13']
-    if dataset_id == 54:
-        cat_embed_cols = ["SKEWNESS_ABOUT_MINOR"]
-        continuous_cols = ["COMPACTNESS", "CIRCULARITY", "DISTANCE_CIRCULARITY", "RADIUS_RATIO", "PR.AXIS_ASPECT_RATIO",
-                           "MAX.LENGTH_ASPECT_RATIO", "SCATTER_RATIO", "ELONGATEDNESS", "PR.AXIS_RECTANGULARITY", "MAX.LENGTH_RECTANGULARITY",
-                           "SCALED_VARIANCE_MAJOR", "SCALED_VARIANCE_MINOR", "SCALED_RADIUS_OF_GYRATION", "SKEWNESS_ABOUT_MAJOR",
-                           "KURTOSIS_ABOUT_MAJOR", "KURTOSIS_ABOUT_MINOR", "HOLLOWS_RATIO"]
-
-    if dataset_id == 42164:
-        cat_embed_cols =['body_type', 'diet', 'drinks', 'drugs', 'education', 'essay0', 'essay1', 'essay2', 'essay3', 'essay4',
-                         'essay5', 'essay6', 'essay7', 'essay8', 'essay9', 'ethnicity', 'job', 'last_online',
-                         'location', 'offspring', 'orientation', 'pets', 'religion', 'sex', 'sign', 'smokes', 'speaks', 'status']
-        continuous_cols = ['height', 'income']
-    if dataset_id == 42998:
-        cat_embed_cols = ['holiday', 'weather_main', 'weather_description', 'date_time']
-        continuous_cols = ['temp', 'rain_1h', 'snow_1h', 'clouds_all']
-    if dataset_id == 40536:
-        cat_embed_cols = ['has_null', 'gender', 'd_d_age', 'race', 'race_o', 'samerace', 'd_importance_same_race', 'd_importance_same_religion',
-                          'field','d_pref_o_attractive', 'd_pref_o_sincere', 'd_pref_o_intelligence', 'd_pref_o_funny', 'd_pref_o_ambitious', 'd_pref_o_shared_interests',
-                          'd_attractive_o', 'd_sinsere_o', 'd_intelligence_o', 'd_funny_o', 'd_ambitous_o', 'd_shared_interests_o',
-                          'd_attractive_important', 'd_sincere_important', 'd_intellicence_important', 'd_funny_important', 'd_ambtition_important', 'd_shared_interests_important',
-                          'd_attractive', 'd_sincere', 'd_intelligence', 'd_funny', 'd_ambition',
-                          'd_attractive_partner', 'd_sincere_partner', 'd_intelligence_partner', 'd_funny_partner', 'd_ambition_partner', 'd_shared_interests_partner',
-                          'd_sports', 'd_tvsports', 'd_exercise', 'd_dining', 'd_museums', 'd_art', 'd_hiking', 'd_gaming', 'd_clubbing', 'd_reading', 'd_tv', 'd_theater', 'd_movies', 'd_concerts', 'd_music', 'd_shopping', 'd_yoga',
-                          'd_interests_correlate',  'd_expected_happy_with_sd_people', 'd_expected_num_interested_in_me', 'd_expected_num_matches',
-                          'd_like', 'd_guess_prob_liked']
-        continuous_cols = ['wave', 'age', 'age_o', 'd_age', 'importance_same_race', 'importance_same_religion',
-                           'pref_o_attractive', 'pref_o_sincere', 'pref_o_intelligence', 'pref_o_funny', 'pref_o_ambitious', 'pref_o_shared_interests',
-                           'attractive_o', 'sinsere_o', 'intelligence_o', 'funny_o', 'ambitous_o', 'shared_interests_o',
-                           'attractive_important', 'sincere_important', 'intellicence_important', 'funny_important', 'ambtition_important', 'shared_interests_important',
-                           'attractive', 'sincere', 'intelligence', 'funny', 'ambition',
-                           'attractive_partner', 'sincere_partner', 'intelligence_partner', 'funny_partner', 'ambition_partner', 'shared_interests_partner',
-                           'sports', 'tvsports', 'exercise', 'dining', 'museums', 'art', 'hiking', 'gaming', 'clubbing', 'reading', 'tv', 'theater', 'movies', 'concerts', 'music', 'shopping', 'yoga',
-                           'interests_correlate', 'expected_happy_with_sd_people', 'expected_num_interested_in_me', 'expected_num_matches',
-                           'like', 'guess_prob_liked', 'met']
-
-    if dataset_id == 1590:
-        cat_embed_cols = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'race', 'sex', 'native-country']
-        continuous_cols = ['age', 'fnlwgt', 'education-num', 'capital-gain', 'capital-loss', 'hours-per-week']
-
-    if dataset_id == 1502:
-        cat_embed_cols = []
-        continuous_cols = ['V1', 'V2', 'V3']
-    if dataset_id == 139:
-        cat_embed_cols = ['Number_of_cars', 'Number_of_different_loads', 'num_wheels_2', 'length_2', 'shape_2', 'num_loads_2', 'load_shape_2',
-                          'num_wheels_3', 'length_3', 'shape_3', 'num_loads_3', 'load_shape_3', 'num_wheels_4', 'length_4', 'shape_4', 'num_loads_4',
-                          'load_shape_4', 'num_wheels_5', 'length_5', 'shape_5', 'num_loads_5', 'load_shape_5', 'Rectangle_next_to_rectangle',
-                          'Rectangle_next_to_triangle', 'Rectangle_next_to_hexagon', 'Rectangle_next_to_circle', 'Triangle_next_to_triangle',
-                          'Triangle_next_to_hexagon', 'Triangle_next_to_circle', 'Hexagon_next_to_hexagon', 'Hexagon_next_to_circle', 'Circle_next_to_circle']
-        continuous_cols = []
-    if dataset_id == 162:
-        cat_embed_cols = []
-        continuous_cols = ['attrib1', 'attrib2', 'attrib3']
-    if dataset_id == 126:
-        cat_embed_cols = ['checking_status', 'duration', 'credit_history', 'purpose', 'credit_amount', 'savings_status', 'employment', 'installment_commitment',
-                          'personal_status', 'other_parties', 'residence_since', 'property_magnitude', 'age', 'other_payment_plans', 'housing', 'existing_credits',
-                          'job', 'num_dependents', 'own_telephone', 'foreign_worker']
-        continuous_cols = []
-    if dataset_id == 143:
-        cat_embed_cols = ['handicapped-infants', 'water-project-cost-sharing', 'adoption-of-the-budget-resolution', 'physician-fee-freeze', 'el-salvador-aid',
-                          'religious-groups-in-schools', 'anti-satellite-test-ban', 'aid-to-nicaraguan-contras', 'mx-missile', 'immigration', 'synfuels-corporation-cutback',
-                          'education-spending', 'superfund-right-to-sue', 'crime', 'duty-free-exports', 'export-administration-act-south-africa']
-        continuous_cols = []
-    if dataset_id == 257:
-        cat_embed_cols = ['surgery', 'Age', 'temp_extremities', 'peripheral_pulse', 'mucous_membranes',
-                          'capillary_refill_time', 'pain', 'peristalsis', 'abdominal_distension', 'nasogastric_tube', 'nasogastric_reflux',
-                          'rectal_examination', 'abdomen', 'abdominocentesis_appearance', 'outcome']
-        continuous_cols = ['rectal_temperature', 'pulse', 'respiratory_rate', 'nasogastric_reflux_PH',  'packed_cell_volume', 'total_protein', 'abdomcentesis_total_protein']
-
-    if dataset_id == 1483:
-        # cat_embed_cols = ['V1', 'V2']
-        cat_embed_cols = []
-        continuous_cols = ['V3', 'V4', 'V5', 'V6', 'V7']
-
-    return cat_embed_cols, continuous_cols
-
-
-
-
-def data_prep_openml(ds_id, seed, task, datasplit=[.65, .15, .2]):
-
-    np.random.seed(seed)
-    dataset = openml.datasets.get_dataset(ds_id)
-    # load data
-    X, y, _, _ = dataset.get_data(dataset_format="dataframe", target=dataset.default_target_attribute)
-    # get cat, cont columns
-    categorical_columns, numerical_columns = get_cont_cat_features(ds_id)
-
-
-    for col in categorical_columns:
-        X[col] = X[col].apply(str).astype("object")
-
-    X[categorical_columns] = X[categorical_columns].fillna("MissingValue")
-
-    # split data into train/val/test
-    X["Set"] = np.random.choice(["train", "valid", "test"], p = datasplit, size=(X.shape[0],))
-    train_indices = X[X.Set=="train"].index
-    valid_indices = X[X.Set=="valid"].index
-    test_indices = X[X.Set=="test"].index
-
-    X = X.drop(columns=['Set'])
-    if task != 'regression':
-        l_enc = LabelEncoder()
-        y = l_enc.fit_transform(y)
-    else:
-        y = y.to_numpy()
-
-    X_cat_train = X[categorical_columns].values[train_indices]
-    X_num_train = X[numerical_columns].values[train_indices]
-    y_train = y[train_indices]
-
-    X_cat_val = X[categorical_columns].values[valid_indices]
-    X_num_val = X[numerical_columns].values[valid_indices]
-    y_val = y[valid_indices]
-
-    X_cat_test = X[categorical_columns].values[test_indices]
-    X_num_test = X[numerical_columns].values[test_indices]
-    y_test = y[test_indices]
-
-
-    info = {}
-    info['name'] = ds_id
-    info['split'] = seed
-    info['task_type'] = task
-    info['n_num_features'] = len(numerical_columns)
-    info['n_cat_features'] = len(categorical_columns)
-    info['train_size'] = len(train_indices)
-    info['val_size'] = len(valid_indices)
-    info['test_size'] = len(test_indices)
-    if task == 'multiclass':
-        info['n_classes'] = len(set(y))
-
-    if len(numerical_columns) > 0:
-        N = {'train': X_num_train, 'val': X_num_val, 'test': X_num_test}
-    else:
-        N = None
-
-    if len(categorical_columns) > 0:
-        C = {'train': X_cat_train, 'val': X_cat_val, 'test': X_cat_test}
-    else:
-        C = None
-    # N = {'train': X_num_train, 'val': X_num_val, 'test': X_num_test}
-    # C = {'train': X_cat_train, 'val': X_cat_val, 'test': X_cat_test}
-    y = {'train': y_train, 'val': y_val, 'test': y_test}
-
-    return N, C, y, info
+import sklearn
+from sklearn.model_selection import train_test_split
 
 def class_split(y, ds_id, p=0.5, class_split_path=os.path.join('transfer', "class_splits/")):
     '''
@@ -306,10 +125,11 @@ def sanity_check_split(X, y, ds_id, p=0.5, split_path=os.path.join('transfer', "
 
 
 def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.65, .15, .2],
-                              pretrain_proportion=0.5, downstream_samples_per_class = 2):
+                              pretrain_proportion=0.5, downstream_samples_per_class = 2, pretrain_subsample = False):
     """pretrain proportion is used by multiclass as pretrain_proportion, by regression as quantile and by binary as current experiment number
     downstream_samples_per_class should be 2 5 10 50 250 for multiclass and 10 25 50 250 1250 for regression as data on downstream
     """
+    #switch off resampling:
     #Let's not waste the data on validation set in case the dataset is small
     if 'downstream' in stage:
         datasplit[0] = datasplit[0] + datasplit[1]
@@ -319,7 +139,7 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
     # torch.manual_seed(seed)
     # random.seed(seed)
     #If ft-transformer data
-    if type(ds_id) == str:
+    if (type(ds_id) == str) and (not ds_id == 'mimic'):
         cat_path = 'data/{}/C_{}.npy'.format(ds_id, 'train')
         if os.path.exists(cat_path):
             categorical_array = np.vstack([np.load('data/{}/C_{}.npy'.format(ds_id, cur_split)) for cur_split in ['train', 'val', 'test']])
@@ -346,7 +166,7 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
 
 
     #or if SAINT data or generic openml data
-    elif type(ds_id) == int:
+    elif (type(ds_id) == int) and (not ds_id == 'mimic'):
         dataset = openml.datasets.get_dataset(ds_id)
         # load data
         X_full, y_full, categorical_indicator, attribute_names = dataset.get_data(dataset_format="dataframe", target=dataset.default_target_attribute)
@@ -355,13 +175,17 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
         # categorical_columns, numerical_columns = get_cont_cat_features(ds_id)
         categorical_columns = list(X_full.columns[np.array(categorical_indicator)])
         numerical_columns = list(X_full.columns[~np.array(categorical_indicator)])
+    elif ds_id == 'mimic':
+        return data_prep_transfer_mimic(ds_id, seed, task, stage, pretrain_proportion,
+                                 downstream_samples_per_class, pretrain_subsample)
     else:
         raise ValueError('Wrong ds_id type. Type of ds_id can only be int or str')
     print(numerical_columns)
     print(categorical_columns)
-    print(X_full.shape, y_full.shape, y_full.dtype)
-    if y_full.dtype.name == "category":
-        y_full = y_full.apply(str).astype('object')
+    # print(X_full.shape, y_full.shape, y_full.dtype)
+    if (len(y_full.shape) == 1):
+        if (y_full.dtype.name == "category"):
+            y_full = y_full.apply(str).astype('object')
 
 
     if len(X_full) > 1000000:#ds_id in [42728, 42705, 42729, 42571]:
@@ -384,44 +208,7 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
             X, y = X_full.iloc[split_indices], y_full.iloc[split_indices]
         else:
             raise ValueError('Wrong value for stage')
-    elif task == 'binclass':
-        if len(categorical_columns) > 0:
-            #append target as one new feature:
-            X_full = pd.concat([X_full, y_full], axis = 1)
-            #if the target is categorical, add it to categorical columns
-            if ds_id in [1111, 1017, 1596, 4541, 40664]:
-                categorical_columns.append(y_full.name)
 
-            multilabel_targets = binary_multilabel_targets(ds_id,
-                                                                  X_full,
-                                                                  categorical_columns,
-                                                                  n=5)['binary_multilabel_targets']
-
-            for col in categorical_columns:
-                X_full[col] = X_full[col].apply(str).astype("object")
-
-            y_full = X_full[multilabel_targets]
-            X_full.drop(columns = multilabel_targets, inplace = True)
-            #remove target names from categorical column names
-            categorical_columns = [col for col in categorical_columns if col not in multilabel_targets]
-
-            X = X_full.copy()
-
-            if 'downstream' in stage:
-                y = y_full[multilabel_targets[pretrain_proportion]]
-            elif 'pretrain' in stage:
-                y = y_full.drop(columns = [multilabel_targets[pretrain_proportion]])
-        else:
-            raise ValueError('Datasets for binary transfer task cannot have 0 categorical features!')
-        #Old experiment, domain shift, we only handle dataset 126
-        # assert ds_id == 126
-        # X_source, y_source, X_target, y_target, cont_columns, cat_columns = split_126(X_full, y_full, numerical_columns, categorical_columns)
-        # if 'pretrain' in stage:
-        #     X, y = X_source, y_source
-        # elif 'downstream' in stage:
-        #     X, y = X_target, y_target
-        # else:
-        #     raise ValueError('Only pretrain or downstream stages are allowed')
     elif task == 'regression':
         if stage in ['pretrain', 'downstream']:
             #pretrain proportion argument acts as quantile in regression setting
@@ -446,7 +233,11 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
         if (downstream_samples_per_class*(len(set(y)) if task == 'multiclass' else 5) <= len(X[X.Set=="train"])):# or (ds_id in ['aloi']): #aloi is huge 1000 classes, don't wanna oversample
             #sample without replacement
             if (task == 'multiclass') or (task == 'binclass'):
-                train_indices = X[X.Set=="train"].sample(n=downstream_samples_per_class*len(set(y)), random_state = seed).index
+                train_X, _, = train_test_split(X[X.Set == 'train'],
+                                               train_size=downstream_samples_per_class * len(set(y)),
+                                               stratify=y[X.Set == 'train'], random_state = seed)
+                train_indices = train_X.index
+                # train_indices = X[X.Set=="train"].sample(n=downstream_samples_per_class*len(set(y)), random_state = seed).index
             elif task == 'regression':
                 train_indices = X[X.Set == "train"].sample(n=downstream_samples_per_class * 5, random_state=seed).index
             else:
@@ -462,7 +253,7 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
     test_indices = X[X.Set=="test"].index
 
     X = X.drop(columns=['Set'])
-    if task != 'regression':
+    if (task != 'regression') and (task != 'binclass'):
         l_enc = LabelEncoder()
         if not (len(y.shape) > 1):
             y = l_enc.fit_transform(y)
@@ -473,24 +264,24 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
 
     X_cat_train = X[categorical_columns].values[train_indices]
     X_num_train = X[numerical_columns].values[train_indices]
-    if ('pretrain' in stage) and (task == 'binclass'):
-        y_train = y.values[train_indices]
-    else:
-        y_train = y[train_indices]
+    # if ('pretrain' in stage) and (task == 'binclass'):
+    #     y_train = y.values[train_indices]
+    # else:
+    y_train = y[train_indices]
 
     X_cat_val = X[categorical_columns].values[valid_indices]
     X_num_val = X[numerical_columns].values[valid_indices]
-    if ('pretrain' in stage) and (task == 'binclass'):
-        y_val = y.values[valid_indices]
-    else:
-        y_val = y[valid_indices]
+    # if ('pretrain' in stage) and (task == 'binclass'):
+    #     y_val = y.values[valid_indices]
+    # else:
+    y_val = y[valid_indices]
 
     X_cat_test = X[categorical_columns].values[test_indices]
     X_num_test = X[numerical_columns].values[test_indices]
-    if ('pretrain' in stage) and (task == 'binclass'):
-        y_test = y.values[test_indices]
-    else:
-        y_test = y[test_indices]
+    # if ('pretrain' in stage) and (task == 'binclass'):
+    #     y_test = y.values[test_indices]
+    # else:
+    y_test = y[test_indices]
 
 
     info = {}
@@ -541,39 +332,151 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
         full_cat_data_for_encoder = None
     return N, C, y, info, full_cat_data_for_encoder
 
-def split_126(X, y, cont_columns, cat_columns, order = 1):
-    if order == 1:
-        X_target = X[(X['credit_history'] == 'critical/other existing credit')].reset_index(drop = True)
-        X_source = X[(X['credit_history'] == 'all paid') ].reset_index(drop = True)
-        y_target = y[(X['credit_history'] == 'critical/other existing credit')].reset_index(drop = True)
-        y_source = y[(X['credit_history'] == 'all paid') ].reset_index(drop = True)
 
+def data_prep_transfer_mimic(ds_id, seed, task, stage='pretrain', pretrain_proportion=0, downstream_samples_per_class = 2, pretrain_subsample = False):
+    """pretrain proportion is used by multiclass as pretrain_proportion, by regression as quantile and by binary as current experiment number
+    downstream_samples_per_class should be 2 5 10 50 250 for multiclass and 10 25 50 250 1250 for regression as data on downstream
+    """
+    np.random.seed(seed)
+    # torch.manual_seed(seed)
+    # random.seed(seed)
+    #If ft-transformer data
+    mimic_target_columns = ['diabetes_diagnosed', 'hypertensive_diagnosed', 'ischematic_diagnosed',
+                            'heart_diagnosed', 'overweight_diagnosed', 'anemia_diagnosed', 'respiratory_diagnosed',
+                            'hypotension_diagnosed', 'lipoid_diagnosed', 'atrial_diagnosed', 'purpura_diagnosed',
+                            'alcohol_diagnosed']
+    X_train = pd.read_csv('data/mimic_train_X.csv')
+    X_val = pd.read_csv('data/mimic_val_X.csv')
+    X_test = pd.read_csv('data/mimic_test_X.csv')
+    y_train_full = pd.read_csv('data/mimic_train_y.csv')
+    y_val_full = pd.read_csv('data/mimic_val_y.csv')
+    y_test_full = pd.read_csv('data/mimic_test_y.csv')
+    categorical_columns = ['gender']
+    numerical_columns = list(X_train.columns[X_train.columns != 'gender'])
+    X_train[categorical_columns] = X_train[categorical_columns].fillna("MissingValue")
+    X_val[categorical_columns] = X_val[categorical_columns].fillna("MissingValue")
+    X_test[categorical_columns] = X_test[categorical_columns].fillna("MissingValue")
+    print(numerical_columns)
+    print(categorical_columns)
+
+    if task == 'binclass':
+        if 'downstream' in stage:
+            #Merge validation set into train, keep the dummy validation set for the code not to fail
+            y_train_full = pd.concat([y_train_full, y_val_full], ignore_index=True)
+            X_train = pd.concat([X_train, X_val], ignore_index=True)
+            print('Using downstream target:', mimic_target_columns[pretrain_proportion])
+            y_train = y_train_full[mimic_target_columns[pretrain_proportion]]
+            y_val = y_val_full[mimic_target_columns[pretrain_proportion]]
+            y_test = y_test_full[mimic_target_columns[pretrain_proportion]]
+        elif 'pretrain' in stage:
+            #Do multitarget in regular pretrain
+            print('Dropping downstream target:', mimic_target_columns[pretrain_proportion])
+            y_train = y_train_full.drop(columns=[mimic_target_columns[pretrain_proportion]])
+            y_val = y_val_full.drop(columns=[mimic_target_columns[pretrain_proportion]])
+            y_test = y_test_full.drop(columns=[mimic_target_columns[pretrain_proportion]])
+            if pretrain_subsample:
+                subsample_tuning_target = np.random.randint(10)
+                possible_tuning_targets = np.array(y_train.columns)
+                print('Using subsample tuning target:', possible_tuning_targets[subsample_tuning_target])
+                y_train = y_train_full[possible_tuning_targets[subsample_tuning_target]]
+                y_val = y_val_full[possible_tuning_targets[subsample_tuning_target]]
+                y_test = y_test_full[possible_tuning_targets[subsample_tuning_target]]
+        else:
+            raise ValueError('Stage is incorrect!')
     else:
-        X_source = X[(X['credit_history'] == 'critical/other existing credit') ].reset_index(drop = True)
-        X_target = X[(X['credit_history'] == 'all paid') ].reset_index(drop = True)
-        y_source = y[(X['credit_history'] == 'critical/other existing credit') ].reset_index(drop = True)
-        y_target = y[(X['credit_history'] == 'all paid') ].reset_index(drop = True)
+        raise NotImplementedError('Mimic only accepts binclass tasks')
 
-    print('Source label distribution: ', y_source.value_counts())
-    print('Target label distribution: ', y_target.value_counts())
+    X_train_full = X_train.copy()
+    y_train_full = y_train.copy()
+    if ('downstream' in stage) or pretrain_subsample:
+        #switching to downstream_samples_per_class
+        print('Total num classes:', len(set(y_train)))
+        total_num_of_classes = len(set(y_train))
+        X_train, _, y_train, _ = train_test_split(X_train, y_train,
+                                       train_size=downstream_samples_per_class * len(set(y_train)),
+                                       stratify=y_train, random_state = seed)
+        print('Sample num classes:', len(set(y_train)))
+        sample_num_classes = len(set(y_train))
+        if sample_num_classes < total_num_of_classes:
+            print('Resampling and guaranteeing at least one sample per class')
+            X_train, y_train = stratified_sample_at_least_one_per_class(X_train_full, y_train_full, downstream_samples_per_class, seed)
+            sample_num_classes = len(set(y_train))
+            print('New sample num classes:', len(set(y_train)))
+        assert total_num_of_classes == sample_num_classes
+    X_cat_train = X_train[categorical_columns].values
+    X_num_train = X_train[numerical_columns].values
+    y_train = y_train.values.astype('float')
 
-    source_pts_neg = np.random.choice(X_source[y_source == 'bad'].index, 20000, replace = False)
-    source_pts_pos = np.random.choice(X_source[y_source == 'good'].index, 20000, replace = False)
-    target_pts_neg = np.random.choice(X_target[y_target == 'bad'].index, 20000, replace = False)
-    target_pts_pos = np.random.choice(X_target[y_target == 'good'].index, 20000, replace = False)
+    X_cat_val = X_val[categorical_columns].values
+    X_num_val = X_val[numerical_columns].values
+    y_val = y_val.values.astype('float')
 
-    X_source = X_source.iloc[list(source_pts_neg) + list(source_pts_pos)].reset_index(drop=True)
-    y_source = y_source.iloc[list(source_pts_neg) + list(source_pts_pos)].reset_index(drop=True)
-    X_target = X_target.iloc[list(target_pts_neg) + list(target_pts_pos)].reset_index(drop=True)
-    y_target = y_target.iloc[list(target_pts_neg) + list(target_pts_pos)].reset_index(drop=True)
+    X_cat_test = X_test[categorical_columns].values
+    X_num_test = X_test[numerical_columns].values
+    y_test = y_test.values.astype('float')
 
-    print('Source label distribution: ', y_source.value_counts())
-    print('Target label distribution: ', y_target.value_counts())
+    info = {}
+    info['name'] = ds_id
+    info['stage'] = stage
+    info['split'] = seed
+    # info['split'] = datasplit
+    info['task_type'] = task
+    info['n_num_features'] = len(numerical_columns)
+    info['n_cat_features'] = len(categorical_columns)
+    info['train_size'] = X_train.shape[0]
+    info['val_size'] = X_val.shape[0]
+    info['test_size'] = X_test.shape[0]
+    info['replacement_sampling'] = False
+    if task == 'multiclass':
+        info['n_classes'] = len(set(y))
+    if task == 'binclass':
+        if len(y_train.shape) > 1:
+            info['n_classes'] = y_train.shape[1]
+        else:
+            info['n_classes'] = 1
 
+    if len(numerical_columns) > 0:
+        #We have a zero size validation set, replace it with train (hack)
+        if 'downstream' in stage:
+            X_num_val = X_num_train
+        N = {'train': X_num_train, 'val': X_num_val, 'test': X_num_test}
+    else:
+        N = None
 
-    '''Dropping features and getting indices for cont/cat features'''
-    X_source = X_source.drop(['credit_history'], axis=1)
-    X_target = X_target.drop(['credit_history'], axis=1)
-    cat_columns.remove('credit_history')
+    if len(categorical_columns) > 0:
+        # We have a zero size validation set, replace it with train (hack)
+        if 'downstream' in stage:
+            X_cat_val = X_cat_train
+        C = {'train': X_cat_train, 'val': X_cat_val, 'test': X_cat_test}
+    else:
+        C = None
 
-    return X_source, y_source, X_target, y_target, cont_columns, cat_columns
+    # We have a zero size validation set, replace it with train (hack)
+    if 'downstream' in stage:
+        y_val = y_train
+    y = {'train': y_train, 'val': y_val, 'test': y_test}
+    print('\n Train size:{} Val size:{} Test size:{}'.format(len(y_train), len(y_val), len(y_test)))
+    if len(categorical_columns) > 0:
+        #this only works with mimic since the only categorical feature is gender
+        full_cat_data_for_encoder = X_train_full[categorical_columns]
+    else:
+        full_cat_data_for_encoder = None
+    return N, C, y, info, full_cat_data_for_encoder
+
+def stratified_sample_at_least_one_per_class(X_train, y_train, downstream_samples_per_class, seed):
+    # Sample 1 element per class
+    X_train['y'] = y_train
+    X_one_sample = X_train.groupby(by='y').sample(n=1)
+    y_one_sample = X_one_sample['y']
+    X_one_sample = X_one_sample.drop(columns=['y'])
+    # Add a stratified sample from the rest of the data
+    X_train = X_train[~X_train.index.isin(X_one_sample.index)]
+    y_train = X_train['y']
+    X_train = X_train.drop(columns=['y'])
+    X_train, _, y_train, _ = train_test_split(X_train, y_train,
+                                              train_size=downstream_samples_per_class * len(set(y_train)) - len(
+                                                  X_one_sample),
+                                              stratify=y_train, random_state=seed)
+    X_train = pd.concat([X_train, X_one_sample], axis=0)
+    y_train = pd.concat([y_train, y_one_sample], axis=0)
+    return X_train, y_train

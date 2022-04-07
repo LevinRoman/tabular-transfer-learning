@@ -130,7 +130,8 @@ if __name__ == "__main__":
                                                   stage=args['transfer']['stage'],
                                                   datasplit=[.65, .15, .2],
                                                   pretrain_proportion=args['transfer']['pretrain_proportion'],
-                                                  downstream_samples_per_class=args['transfer']['downstream_samples_per_class'])
+                                                  downstream_samples_per_class=args['transfer']['downstream_samples_per_class'],
+                                                  pretrain_subsample = args['transfer']['pretrain_subsample'])
     #####################################################################################
     # TRANSFER#
     #####################################################################################

@@ -44,14 +44,16 @@ def calculate_metrics(
                 if task_type == util.BINCLASS
                 else probs.argmax(axis=1)  # type: ignore[code]
             )
-
-        result = skm.classification_report(y, labels, output_dict=True)  # type: ignore[code]
-        result['balanced_accuracy'] = skm.balanced_accuracy_score(y, labels, adjusted=False)
-        result['adjusted_balanced_accuracy'] = skm.balanced_accuracy_score(y, labels, adjusted=True)
+        if task_type == util.MULTICLASS:
+            result = skm.classification_report(y, labels, output_dict=True)  # type: ignore[code]
+            result['balanced_accuracy'] = skm.balanced_accuracy_score(y, labels, adjusted=False)
+            result['adjusted_balanced_accuracy'] = skm.balanced_accuracy_score(y, labels, adjusted=True)
         if task_type == util.BINCLASS:
-            # result['roc_auc'] = skm.roc_auc_score(y, probs)  # type: # ignore[code]
-            # result['score'] = result['roc_auc']  # type:# ignore[code]
-            result['score'] = result['balanced_accuracy']
+            result = {}
+            result['accuracy'] = skm.accuracy_score(y, labels)
+            result['roc_auc'] = skm.roc_auc_score(y, probs)  # type: # ignore[code]
+            result['score'] = result['roc_auc']  # type:# ignore[code]
+            # result['score'] = result['balanced_accuracy']
         else:
             result['score'] = result['balanced_accuracy']#result['accuracy']  # type: ignore[code]
     return result  # type: ignore[code]

@@ -1,14 +1,16 @@
 import os
 import shutil
 from pathlib import Path
-
+# previous catboost version: '0.24.4'
 import numpy as np
 import pandas as pd
 import zero
 from catboost import CatBoostClassifier, CatBoostRegressor
-
+import optuna
 import lib
-
+from sklearn.metrics import roc_auc_score, balanced_accuracy_score, average_precision_score, recall_score
+import sklearn.metrics
+from sklearn.model_selection import StratifiedKFold
 args, output = lib.load_config()
 args['model']['random_seed'] = args['seed']
 assert (
@@ -33,7 +35,8 @@ N, C, y, info, full_cat_data_for_encoder = lib.data_prep_openml_transfer(ds_id=d
                                                                          pretrain_proportion=args['transfer'][
                                                                              'pretrain_proportion'],
                                                                          downstream_samples_per_class=args['transfer'][
-                                                                             'downstream_samples_per_class'])
+                                                                             'downstream_samples_per_class'],
+                                                                         pretrain_subsample = args['transfer']['pretrain_subsample'])
 #####################################################################################
 # TRANSFER#
 #####################################################################################
@@ -70,7 +73,7 @@ X = D.build_X(
 
 zero.set_randomness(args['seed'])
 Y, y_info = D.build_y(args['data'].get('y_policy'))
-lib.dump_pickle(y_info, output / 'y_info.pickle')
+# lib.dump_pickle(y_info, output / 'y_info.pickle')
 
 model_kwargs = args['model']
 
@@ -106,22 +109,70 @@ if model_kwargs['task_type'] == 'GPU':
 if D.is_regression:
     model = CatBoostRegressor(**model_kwargs, allow_writing_files = False)
     predict = model.predict
-else:
+elif D.is_multiclass:
     model = CatBoostClassifier(**model_kwargs, eval_metric='Accuracy', allow_writing_files = False)
     predict = (
         model.predict_proba
         if D.is_multiclass
         else lambda x: model.predict_proba(x)[:, 1]  # type: ignore[code]
     )
+else:
+    if 'pretrain' in args['transfer']['stage']:
+        if not args['transfer']['pretrain_subsample']:
+            model = CatBoostClassifier(**model_kwargs,
+                loss_function='MultiLogloss',
+                eval_metric='HammingLoss',
+                class_names=['class_{}'.format(i) for i in range(Y[lib.TRAIN].shape[1])],
+                allow_writing_files=False
+            )
+            predict = model.predict_proba
+        else:
+            model = CatBoostClassifier(**model_kwargs, eval_metric='AUC', allow_writing_files=False, verbose=0)
+            predict = lambda x: model.predict_proba(x)[:, 1]
+    elif 'downstream' in args['transfer']['stage']:
+        model = CatBoostClassifier(**model_kwargs, eval_metric='AUC', allow_writing_files=False, verbose=0)
+        predict = lambda x: model.predict_proba(x)[:, 1]
+    else:
+        raise ValueError('stage can be only downstream or pretrain')
 
 timer = zero.Timer()
 timer.run()
 if 'downstream' in args['transfer']['stage']:
-    model.fit(
-        X[lib.TRAIN],
-        Y[lib.TRAIN],
-        **args['fit']
-    )
+    # loading checkpoint of the upstream model, do stacking
+    if (args['transfer']['load_checkpoint']):
+        print('Stacking')
+        for part in X:
+            from_file = CatBoostClassifier()
+            from_file.load_model(args['transfer']['checkpoint_path'])
+            upstream_predictions = from_file.predict(X[part])
+            upstream_predictions = pd.DataFrame(upstream_predictions, columns=['upstream_'+str(i) for i in range(upstream_predictions.shape[1])])
+            X[part] = pd.concat([X[part], upstream_predictions], axis = 1) #note that cat features are specified by index
+    else:
+        print('No stacking')
+    # Tune downstream hyperparameters with optuna
+    if args['transfer']['use_optuna_CV']:
+        raise NotImplementedError('We dont use optuna CV!')
+        cv_inner = StratifiedKFold(n_splits=min(X[lib.TRAIN].shape[0], 5), shuffle=True, random_state=args['seed'])
+        param_distributions = lib.util.get_param_distributions('catboost')
+        optuna_search = optuna.integration.OptunaSearchCV(model,
+                                                          param_distributions,
+                                                          scoring=sklearn.metrics.make_scorer(roc_auc_score),
+                                                          refit=True,
+                                                          cv=cv_inner,
+                                                          random_state=args['seed'],
+                                                          n_trials=100,
+                                                          verbose=0,
+                                                          error_score=np.nan
+                                                          )
+        optuna_search.fit(X[lib.TRAIN], Y[lib.TRAIN])
+        print('Best score:', optuna_search.best_score_)
+        model = optuna_search.best_estimator_
+    else:
+        model.fit(
+            X[lib.TRAIN],
+            Y[lib.TRAIN],
+            **args['fit']
+        )
 else:
     model.fit(
         X[lib.TRAIN],
@@ -129,8 +180,9 @@ else:
         **args['fit'],
         eval_set=(X[lib.VAL], Y[lib.VAL]),
     )
+    model.save_model(str(output / 'model.cbm'))
 if Path('catboost_info').exists():
-    shutil.rmtree('catboost_info')
+    shutil.rmtree('catboost_info', ignore_errors=True)
 
 # model.save_model(str(output / 'model.cbm'))
 # np.save(output / 'feature_importances.npy', model.get_feature_importance())
@@ -144,6 +196,6 @@ for part in X:
 stats['time'] = lib.format_seconds(timer())
 lib.dump_stats(stats, output, True)
 lib.backup_output(output)
-
+print(stats['metrics'])
 # if 'downstream' in args['transfer']['stage']:
 #     os.remove(output / 'checkpoint.pt')

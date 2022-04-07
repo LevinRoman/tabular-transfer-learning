@@ -10,7 +10,7 @@ import time
 import typing as ty
 from copy import deepcopy
 from pathlib import Path
-
+import optuna
 import numpy as np
 import pynvml
 import pytomlpp as toml
@@ -263,3 +263,34 @@ def freeze_parameters(model, unfrozen_param_list):
 def unfreeze_all_params(model):
     for name, param in model.named_parameters():
         param.requires_grad = True
+
+def get_param_distributions(model_name):
+    param_distributions = {}
+
+    if model_name == 'xgb':
+        param_distributions.update(
+            {
+                'n_iterations': optuna.distributions.IntUniformDistribution(2, 200, step=1),
+                'reg_alpha': optuna.distributions.LogUniformDistribution(1e-8, 100.0),
+                'reg_lambda': optuna.distributions.LogUniformDistribution(1e-8, 100.0),
+                "subsample": optuna.distributions.UniformDistribution(0.5, 1.0),
+                "learning_rate": optuna.distributions.LogUniformDistribution(1e-05, 1),
+                'max_depth': optuna.distributions.IntUniformDistribution(1, 9),
+                'colsample_bytree': optuna.distributions.UniformDistribution(0.5, 1.0),
+                'colsample_bylevel': optuna.distributions.UniformDistribution(0.5, 1.0),
+                #             "min_child_weight": optuna.distributions.LogUniformDistribution(1e-08, 1e5)
+            })
+    elif model_name == 'catboost':
+        param_distributions.update(
+            {
+                'iterations': optuna.distributions.IntUniformDistribution(2, 1000, step=1),
+                'bagging_temperature': optuna.distributions.UniformDistribution(0.0, 1.0),
+                'depth': optuna.distributions.IntUniformDistribution(1, 9),
+                'reg_lambda': optuna.distributions.LogUniformDistribution(1.0, 10.0),
+                'leaf_estimation_iterations': optuna.distributions.IntUniformDistribution(1, 10),
+                "learning_rate": optuna.distributions.LogUniformDistribution(1e-05, 1),
+            })
+    else:
+        raise NotImplementedError('Specified model is not implemented')
+
+    return param_distributions

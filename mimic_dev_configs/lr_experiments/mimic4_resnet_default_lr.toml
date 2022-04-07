@@ -1,0 +1,41 @@
+seed = 0
+
+[data]
+cat_policy = 'indices'
+dset_id = 'mimic'
+normalization = 'quantile'
+task = 'binclass'
+
+[model]
+activation = 'relu'
+d = 349
+d_embedding = 230
+d_hidden_factor = 1.125700366058502
+hidden_dropout = 0.4828140313302567
+n_layers = 8
+normalization = 'batchnorm'
+residual_dropout = 0.003590661108749071
+
+[training]
+batch_size = 256
+eval_batch_size = 256
+lr = 1e-3
+lr_n_decays = 0
+n_epochs = 200
+num_batch_warm_up = 0
+optimizer = 'adamw'
+patience = 3000000
+weight_decay = 1.144594820817145e-06
+
+[transfer]
+checkpoint_path = '/cmlscratch/vcherepa/rilevin/tabular/tabular-transfer-learning/mimic/tabular-transfer-learning/mimic_dev_configs/lr_experiments/mimic4_resnet_pretrain/checkpoint.pt'
+downstream_samples_per_class = 100
+epochs_warm_up_head = 0
+freeze_feature_extractor = true
+head_lr = 0.001
+layers_to_fine_tune = ['head']
+load_checkpoint = true
+pretrain_proportion = 4
+pretrain_subsample = false
+stage = 'downstream'
+use_mlp_head = true

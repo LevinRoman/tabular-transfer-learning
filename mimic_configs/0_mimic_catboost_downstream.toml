@@ -1,0 +1,33 @@
+seed = 0
+
+[data]
+cat_policy = "indices"
+dset_id = 'mimic'
+normalization = "quantile"
+task = "binclass"
+
+[fit]
+logging_level = 'Verbose'
+
+[model]
+iterations = 1000
+task_type = "GPU"
+thread_count = 1
+use_best_model = false
+metric_period = 10000
+od_pval = 0
+
+
+[transfer]
+checkpoint_path = '/cmlscratch/vcherepa/rilevin/tabular/tabular-transfer-learning/mimic/tabular-transfer-learning/mimic_configs/0_mimic_catboost_pretrain/model.cbm'
+downstream_samples_per_class = 10
+epochs_warm_up_head = 0
+freeze_feature_extractor = false
+head_lr = nan
+layers_to_fine_tune = []
+load_checkpoint = true
+pretrain_proportion = 4
+stage = "pretrain"
+use_mlp_head = false
+use_optuna_CV = false
+pretrain_subsample = true
