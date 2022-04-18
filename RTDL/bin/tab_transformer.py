@@ -270,7 +270,8 @@ if __name__ == "__main__":
                                                                                  'pretrain_proportion'],
                                                                              downstream_samples_per_class=
                                                                              args['transfer'][
-                                                                                 'downstream_samples_per_class'])
+                                                                                 'downstream_samples_per_class'],
+                                                                             pretrain_subsample = args['transfer']['pretrain_subsample'])
     #####################################################################################
     # TRANSFER#
     #####################################################################################
