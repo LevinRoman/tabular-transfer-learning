@@ -595,6 +595,8 @@ if __name__ == "__main__":
         if 'downstream' in args['transfer']['stage']:
             if epoch_idx % 1 == 0:
                 stats['Epoch_{}_metrics'.format(epoch_idx)], predictions = evaluate(lib.PARTS)
+                stats['Epoch_{}_metrics'.format(epoch_idx)][lib.TRAIN]['train_loss'] = sum(epoch_losses) / len(
+                    epoch_losses)
 
         if progress.success:
             print('New best epoch!')
