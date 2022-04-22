@@ -1,0 +1,5 @@
+python bin/ft_transformer_mlm.py mlm_outputs/mimic0_mlm_pretraining_ft_transformer_seed0.toml -f
+python bin/ft_transformer_mlm.py mlm_outputs/mimic0_mlm_pretraining_ft_transformer_seed1.toml -f
+python bin/ft_transformer_mlm.py mlm_outputs/mimic0_mlm_pretraining_ft_transformer_seed2.toml -f
+python bin/ft_transformer_mlm.py mlm_outputs/mimic0_mlm_pretraining_ft_transformer_seed3.toml -f
+python bin/ft_transformer_mlm.py mlm_outputs/mimic0_mlm_pretraining_ft_transformer_seed4.toml -f
