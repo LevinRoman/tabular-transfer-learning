@@ -19,9 +19,9 @@ models = ['catboost', 'ft_transformer', 'resnet']# 'mlp', 'tab_transformer']
 catboost_setups = ['fromscratch']
 deep_setups = ['fromscratch', 'linear_head_tuned_full_from_supervised_pretrain', 'mlp_head_tuned_full_from_supervised_pretrain',
                'tuned_linear_head_from_supervised_pretrain', 'tuned_mlp_head_from_supervised_pretrain']
-
+deep_dirs = ['deep_dwnstrm_default_batchsize32_no_resampling', 'deep_dwnstrm_default_batchsize32']
 catboost_dirs = ['catboost_dwnstrm_default_100','catboost_dwnstrm_default_1000', 'catboost_dwnstrm_upstream_subsample_tuned']
-deep_dirs = ['deep_dwnstrm_tuned_standard', 'deep_baselines_dwnstrm_upstream_subsample_tuned', 'deep_dwnstrm_default_standard']
+# deep_dirs = ['deep_dwnstrm_tuned_standard', 'deep_baselines_dwnstrm_upstream_subsample_tuned', 'deep_dwnstrm_default_standard']
 deep_baseline_setups = ['fromscratch']
 num_samples = [2, 5,10,50,100]
 epochs = list(range(200))
@@ -77,7 +77,7 @@ def get_exp_results(output_path):
                                     file_folder = cur_dset + '_downstream_' + str(
                                         cur_sample) + 'samples_' + cur_setup + '_' + \
                                                   cur_model + '_seed' + str(cur_seed)
-                                elif cur_dir == 'deep_dwnstrm_default_batchsize32':
+                                elif (cur_dir == 'deep_dwnstrm_default_batchsize32') or (cur_dir == 'deep_dwnstrm_default_batchsize32_no_resampling'):
                                     if cur_sample in [2,5,10]:
                                         print(f'Skipping {cur_sample} for batch 32')
                                         continue
@@ -142,22 +142,47 @@ def main():
     parser = argparse.ArgumentParser(description="Analysis parser")
     parser.add_argument("--filepath", type=str, default = '/cmlscratch/vcherepa/rilevin/tabular/tabular-transfer-learning/mimic/tabular-transfer-learning/RTDL/output_mimic_dev')
     parser.add_argument("--force", action='store_true')
+    parser.add_argument("--modelwise", action='store_true')
     args = parser.parse_args()
-    os.makedirs('results_dev/plots', exist_ok=True)
-    if not os.path.exists('results_dev/plots/all_results.csv') or args.force:
+    experiment = 'no_resampling'
+    os.makedirs('results_dev/plots/{}'.format(experiment), exist_ok=True)
+    if not os.path.exists('results_dev/plots/{}/all_results.csv'.format(experiment)) or args.force:
         df = get_exp_results(args.filepath)
-        df.to_csv('results_dev/plots/all_results.csv')
+        df.to_csv('results_dev/plots/{}/all_results.csv'.format(experiment))
     else:
-        df = pd.read_csv('results_dev/plots/all_results.csv')
+        df = pd.read_csv('results_dev/plots/{}/all_results.csv'.format(experiment))
     print(df.head())
     df_full = df.copy()
     approaches = ['deep_dwnstrm_default_batchsize32']
     plot_models = ['ft_transformer', 'resnet']
     # for cur_approach in approaches:
-    for cur_model in plot_models:
-        for cur_setup in deep_setups:
-            print('Working on {}, {}...'.format(cur_model, cur_setup))
-            df = df_full[(df_full.model == cur_model) & (df_full.setup == cur_setup)]
+    if args.modelwise:
+        for cur_model in plot_models:
+            for cur_setup in deep_setups:
+                print('Working on {}, {}...'.format(cur_model, cur_setup))
+                df = df_full[(df_full.model == cur_model) & (df_full.setup == cur_setup)]
+                dsets = datasets  # ['california_housing', 'year', 541, 42726, 42728, 43172, 41169, 'jannis', 1596, 40975, 1483, 40687, 188, 'aloi', 41166]
+                for dset in dsets:
+                    print(dset)
+                    long_dataset_table = df[
+                        (df["dataset"] == dset) & (df['num_samples'].isin([2, 5, 10, 50, 100, 10, 25, 50, 250, 500]))]
+                    # hue_categories = np.sort(long_dataset_table['Experiment'].unique())
+                    # print(hue_categories)
+                    plt.figure()
+                    sns.relplot(data=long_dataset_table, x='epoch', y='score', hue='dir', col='num_samples', col_wrap=2,
+                                kind='line', hue_order=deep_dirs, ci=68)#style='dir'
+                    os.makedirs('results_dev/plots/{}/{}_{}'.format(experiment, cur_model, cur_setup), exist_ok=True)
+                    plt.savefig('results_dev/plots/{}/{}_{}/{}_auc_test.png'.format(experiment, cur_model, cur_setup, dset))
+                    plt.figure()
+                    sns.relplot(data=long_dataset_table, x='epoch', y='train_score', hue='dir', col='num_samples', col_wrap=2,
+                                kind='line', hue_order=deep_dirs, ci=68)#style='model',
+                    plt.savefig('results_dev/plots/{}/{}_{}/{}_auc_train.png'.format(experiment, cur_model, cur_setup, dset))
+
+    else:
+        approaches = ['deep_dwnstrm_default_batchsize32_no_resampling', 'deep_dwnstrm_default_batchsize32']
+        for cur_approach in approaches:
+            print('Working on {}...'.format(cur_approach))
+            df = df_full[df_full.dir == cur_approach]
             dsets = datasets  # ['california_housing', 'year', 541, 42726, 42728, 43172, 41169, 'jannis', 1596, 40975, 1483, 40687, 188, 'aloi', 41166]
             for dset in dsets:
                 print(dset)
@@ -166,14 +191,16 @@ def main():
                 # hue_categories = np.sort(long_dataset_table['Experiment'].unique())
                 # print(hue_categories)
                 plt.figure()
-                sns.relplot(data=long_dataset_table, x='epoch', y='score', hue='dir', col='num_samples', col_wrap=2,
-                            kind='line', hue_order=deep_dirs, ci=68)#style='dir'
-                os.makedirs('results_dev/plots/{}_{}'.format(cur_model, cur_setup), exist_ok=True)
-                plt.savefig('results_dev/plots/{}_{}/{}_auc_test.png'.format(cur_model, cur_setup, dset))
+                sns.relplot(data=long_dataset_table, x='epoch', y='score', hue='setup', col='num_samples', col_wrap=2,
+                            kind='line', style='model', hue_order=deep_setups, ci=68)
+                os.makedirs('results_dev/plots/{}/{}'.format(experiment, cur_approach), exist_ok=True)
+                plt.savefig('results_dev/plots/{}/{}/{}_auc_test.png'.format(experiment, cur_approach, dset))
                 plt.figure()
-                sns.relplot(data=long_dataset_table, x='epoch', y='train_score', hue='dir', col='num_samples', col_wrap=2,
-                            kind='line', hue_order=deep_dirs, ci=68)#style='model',
-                plt.savefig('results_dev/plots/{}_{}/{}_auc_train.png'.format(cur_model, cur_setup, dset))
+                sns.relplot(data=long_dataset_table, x='epoch', y='train_score', hue='setup', col='num_samples',
+                            col_wrap=2,
+                            kind='line', style='model', hue_order=deep_setups, ci=68)
+                plt.savefig('results_dev/plots/{}/{}/{}_auc_train.png'.format(experiment, cur_approach, dset))
+
     # df = df[df.seed == 4]
     # df = df[df["Experiment"] != "random extractor"]
     # print(tabulate(exps, headers=head, floatfmt=".2f"))

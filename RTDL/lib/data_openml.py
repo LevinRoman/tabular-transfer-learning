@@ -130,6 +130,7 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
     downstream_samples_per_class should be 2 5 10 50 250 for multiclass and 10 25 50 250 1250 for regression as data on downstream
     """
     #switch off resampling:
+    seed = 0
     #Let's not waste the data on validation set in case the dataset is small
     if 'downstream' in stage:
         datasplit[0] = datasplit[0] + datasplit[1]
