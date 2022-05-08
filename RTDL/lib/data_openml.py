@@ -125,12 +125,18 @@ def sanity_check_split(X, y, ds_id, p=0.5, split_path=os.path.join('transfer', "
 
 
 def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.65, .15, .2],
-                              pretrain_proportion=0.5, downstream_samples_per_class = 2, pretrain_subsample = False):
+                              pretrain_proportion=0.5, downstream_samples_per_class = 2, column_mode=None, pretrain_subsample = False):
+
+    # Arpit - Added column_mode in order to change the data accordingly
     """pretrain proportion is used by multiclass as pretrain_proportion, by regression as quantile and by binary as current experiment number
     downstream_samples_per_class should be 2 5 10 50 250 for multiclass and 10 25 50 250 1250 for regression as data on downstream
     """
+    input_seed = seed
     #switch off resampling:
     seed = 0
+    if (ds_id == 'mimic') and (pretrain_proportion == 2):
+        seed = 1
+
     #Let's not waste the data on validation set in case the dataset is small
     if 'downstream' in stage:
         datasplit[0] = datasplit[0] + datasplit[1]
@@ -178,7 +184,8 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
         numerical_columns = list(X_full.columns[~np.array(categorical_indicator)])
     elif ds_id == 'mimic':
         return data_prep_transfer_mimic(ds_id, seed, task, stage, pretrain_proportion,
-                                 downstream_samples_per_class, pretrain_subsample)
+                                 downstream_samples_per_class, column_mode, pretrain_subsample, input_seed)
+        # Arpit - Added column_mode
     else:
         raise ValueError('Wrong ds_id type. Type of ds_id can only be int or str')
     print(numerical_columns)
@@ -334,7 +341,7 @@ def data_prep_openml_transfer(ds_id, seed, task, stage='pretrain', datasplit=[.6
     return N, C, y, info, full_cat_data_for_encoder
 
 
-def data_prep_transfer_mimic(ds_id, seed, task, stage='pretrain', pretrain_proportion=0, downstream_samples_per_class = 2, pretrain_subsample = False):
+def data_prep_transfer_mimic(ds_id, seed, task, stage='pretrain', pretrain_proportion=0, downstream_samples_per_class = 2, column_mode=None, pretrain_subsample = False, input_seed=0):
     """pretrain proportion is used by multiclass as pretrain_proportion, by regression as quantile and by binary as current experiment number
     downstream_samples_per_class should be 2 5 10 50 250 for multiclass and 10 25 50 250 1250 for regression as data on downstream
     """
@@ -360,32 +367,66 @@ def data_prep_transfer_mimic(ds_id, seed, task, stage='pretrain', pretrain_propo
     print(numerical_columns)
     print(categorical_columns)
 
-    if task == 'binclass':
-        if 'downstream' in stage:
-            #Merge validation set into train, keep the dummy validation set for the code not to fail
-            y_train_full = pd.concat([y_train_full, y_val_full], ignore_index=True)
-            X_train = pd.concat([X_train, X_val], ignore_index=True)
-            print('Using downstream target:', mimic_target_columns[pretrain_proportion])
-            y_train = y_train_full[mimic_target_columns[pretrain_proportion]]
-            y_val = y_val_full[mimic_target_columns[pretrain_proportion]]
-            y_test = y_test_full[mimic_target_columns[pretrain_proportion]]
-        elif 'pretrain' in stage:
-            #Do multitarget in regular pretrain
-            print('Dropping downstream target:', mimic_target_columns[pretrain_proportion])
-            y_train = y_train_full.drop(columns=[mimic_target_columns[pretrain_proportion]])
-            y_val = y_val_full.drop(columns=[mimic_target_columns[pretrain_proportion]])
-            y_test = y_test_full.drop(columns=[mimic_target_columns[pretrain_proportion]])
-            if pretrain_subsample:
-                subsample_tuning_target = np.random.randint(10)
-                possible_tuning_targets = np.array(y_train.columns)
-                print('Using subsample tuning target:', possible_tuning_targets[subsample_tuning_target])
-                y_train = y_train_full[possible_tuning_targets[subsample_tuning_target]]
-                y_val = y_val_full[possible_tuning_targets[subsample_tuning_target]]
-                y_test = y_test_full[possible_tuning_targets[subsample_tuning_target]]
-        else:
-            raise ValueError('Stage is incorrect!')
+    # Arpit -  even though we will have regression, we still need the following data
+
+    if 'downstream' in stage:
+        #Merge validation set into train, keep the dummy validation set for the code not to fail
+        y_train_full = pd.concat([y_train_full, y_val_full], ignore_index=True)
+        X_train = pd.concat([X_train, X_val], ignore_index=True)
+        print('Using downstream target:', mimic_target_columns[pretrain_proportion])
+        y_train = y_train_full[mimic_target_columns[pretrain_proportion]]
+        y_val = y_val_full[mimic_target_columns[pretrain_proportion]]
+        y_test = y_test_full[mimic_target_columns[pretrain_proportion]]
+    elif 'pretrain' in stage:
+        #Do multitarget in regular pretrain
+        print('Dropping downstream target:', mimic_target_columns[pretrain_proportion])
+        y_train = y_train_full.drop(columns=[mimic_target_columns[pretrain_proportion]])
+        y_val = y_val_full.drop(columns=[mimic_target_columns[pretrain_proportion]])
+        y_test = y_test_full.drop(columns=[mimic_target_columns[pretrain_proportion]])
+        if pretrain_subsample:
+            subsample_tuning_target = np.random.randint(10)
+            possible_tuning_targets = np.array(y_train.columns)
+            print('Using subsample tuning target:', possible_tuning_targets[subsample_tuning_target])
+            y_train = y_train_full[possible_tuning_targets[subsample_tuning_target]]
+            y_val = y_val_full[possible_tuning_targets[subsample_tuning_target]]
+            y_test = y_test_full[possible_tuning_targets[subsample_tuning_target]]
     else:
-        raise NotImplementedError('Mimic only accepts binclass tasks')
+        raise ValueError('Stage is incorrect!')
+
+    # Arpit - handling the drop of the column
+    to_drop_index = 0  # the index of the categorical column we are removing
+    to_drop = numerical_columns[to_drop_index]
+
+    if column_mode == 'remove_column':
+        X_train = X_train.drop(columns=[to_drop])
+        X_val = X_val.drop(columns=[to_drop])
+        X_test = X_test.drop(columns=[to_drop])
+
+        print("All Cols")
+        print(numerical_columns)
+        print("To drop")
+        print(to_drop)
+
+        numerical_columns.remove(to_drop)
+
+    # Arpit - Also since we are dropping the numerical column, just train to predict a value.
+    # Arpit - Before I made a lot of changes to handle categorical coloumn being dropped.
+
+    elif column_mode == 'predict_missing_column' or column_mode == 'train_to_predict_missing_column':
+        y_train = X_train[to_drop]
+        y_val = X_val[to_drop]
+        y_test = X_test[to_drop]
+
+        X_train = X_train.drop(columns=[to_drop])
+        X_val = X_val.drop(columns=[to_drop])
+        X_test = X_test.drop(columns=[to_drop])
+
+        print("All Cols")
+        print(numerical_columns)
+        print("To drop")
+        print(to_drop)
+        numerical_columns.remove(to_drop)
+
 
     X_train_full = X_train.copy()
     y_train_full = y_train.copy()
@@ -404,6 +445,22 @@ def data_prep_transfer_mimic(ds_id, seed, task, stage='pretrain', pretrain_propo
             sample_num_classes = len(set(y_train))
             print('New sample num classes:', len(set(y_train)))
         assert total_num_of_classes == sample_num_classes
+
+    if column_mode == 'train_to_predict_missing_column':
+        # drop the nas
+        Na_indexes = y_train.copy().isna()
+        y_train = y_train[~Na_indexes]
+        X_train = X_train[~Na_indexes]
+
+        Na_indexes = y_val.copy().isna()
+        y_val = y_val[~Na_indexes]
+        X_val = X_val[~Na_indexes]
+
+        Na_indexes = y_test.copy().isna()
+        y_test = y_test[~Na_indexes]
+        X_test = X_test[~Na_indexes]
+
+
     X_cat_train = X_train[categorical_columns].values
     X_num_train = X_train[numerical_columns].values
     y_train = y_train.values.astype('float')
@@ -415,6 +472,44 @@ def data_prep_transfer_mimic(ds_id, seed, task, stage='pretrain', pretrain_propo
     X_cat_test = X_test[categorical_columns].values
     X_num_test = X_test[numerical_columns].values
     y_test = y_test.values.astype('float')
+
+    # Arpit -
+    # when training on the missing upstream feature, we have trained on the downstream task for different samples
+    # but when there is a missing upstream feature, we have all the data and nothing for downstream samples
+    if column_mode == 'train_with_imputed_column':
+        if 'downstream' in stage:
+            overwrite = torch.load(
+                f"./predict_missing_column/predicted_column_using_upstream_on_downstream_train_mimic_{input_seed}_{downstream_samples_per_class}_{pretrain_proportion}.pt").int().cpu().numpy()
+
+            print("Sanity_rmse")
+            print(np.sqrt(np.mean( (X_num_train[:, to_drop_index] - overwrite)**2)) )
+
+            X_num_train[:, to_drop_index] = overwrite
+
+            overwrite = torch.load(
+                f"./predict_missing_column/predicted_column_using_upstream_on_downstream_val_mimic_{input_seed}_{downstream_samples_per_class}_{pretrain_proportion}.pt").int().cpu().numpy()
+            X_num_val[:, to_drop_index] = overwrite
+
+            overwrite = torch.load(
+                f"./predict_missing_column/predicted_column_using_upstream_on_downstream_test_mimic_{input_seed}_{downstream_samples_per_class}_{pretrain_proportion}.pt").int().cpu().numpy()
+            X_num_test[:, to_drop_index] = overwrite
+
+        elif 'pretrain' in stage:
+            overwrite = torch.load(
+                f"./predict_missing_column/predicted_column_using_downstream_on_upstream_train_mimic_{input_seed}_{downstream_samples_per_class}_{pretrain_proportion}.pt").int().cpu().numpy()
+
+            print("Sanity_rmse")
+            print(np.sqrt(np.mean( (X_num_train[:, to_drop_index] - overwrite)**2)) )
+
+            X_num_train[:, to_drop_index] = overwrite
+
+            overwrite = torch.load(
+                f"./predict_missing_column/predicted_column_using_downstream_on_upstream_val_mimic_{input_seed}_{downstream_samples_per_class}_{pretrain_proportion}.pt").int().cpu().numpy()
+            X_num_val[:, to_drop_index] = overwrite
+
+            overwrite = torch.load(
+                f"./predict_missing_column/predicted_column_using_downstream_on_upstream_test_mimic_{input_seed}_{downstream_samples_per_class}_{pretrain_proportion}.pt").int().cpu().numpy()
+            X_num_test[:, to_drop_index] = overwrite
 
     info = {}
     info['name'] = ds_id
@@ -428,6 +523,9 @@ def data_prep_transfer_mimic(ds_id, seed, task, stage='pretrain', pretrain_propo
     info['val_size'] = X_val.shape[0]
     info['test_size'] = X_test.shape[0]
     info['replacement_sampling'] = False
+
+    # Arpit - Ask if this will be a problem in regression
+
     if task == 'multiclass':
         info['n_classes'] = len(set(y))
     if task == 'binclass':

@@ -91,9 +91,9 @@ SBATCH_PROTOTYPE = \
 #SBATCH --cpus-per-task=4
 #SBATCH --partition={"dpart" if args.qos != "scav" else "scavenger"}
 #SBATCH --mem={args.mem}gb
-#SBATCH --mail-user=rilevin@uw.edu
+#SBATCH --mail-user={username}@umd.edu
 #SBATCH --mail-type=END,TIME_LIMIT,FAIL,ARRAY_TASKS
-#SBATCH --exclude=cmlgrad05,cmlgrad02,cml12
+#SBATCH --exclude=cmlgrad05,cmlgrad02,cml12,cml17,cml18,cml19,cml20,cml21,cml22,cml23,cml24
 
 srun bash .cml_job_list_{authkey}.temp.sh
 """

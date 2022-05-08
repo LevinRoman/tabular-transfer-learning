@@ -305,6 +305,16 @@ class Transformer(nn.Module):
         x = x.squeeze(-1)
         return x
 
+import os
+import errno
+import shutil
+def create_folder(path):
+    try:
+        os.mkdir(path)
+    except OSError as exc:
+        if exc.errno != errno.EEXIST:
+            raise
+        pass
 
 # %%
 if __name__ == "__main__":
@@ -338,7 +348,12 @@ if __name__ == "__main__":
                                                   datasplit=[.65, .15, .2],
                                                   pretrain_proportion=args['transfer']['pretrain_proportion'],
                                                   downstream_samples_per_class=args['transfer']['downstream_samples_per_class'],
-                                                  pretrain_subsample = args['transfer']['pretrain_subsample'])
+                                                  column_mode=args['transfer']['column_mode'],
+                                                  pretrain_subsample=args['transfer']['pretrain_subsample'])
+
+    # Arpit - Added column_mode for imputation
+    # Arpit - This column_mode will add Information about whether to remove the column from the upstream task or the downstream task.
+    # Arpit - Also will tell whether the mode is to impute the missing column.
     #####################################################################################
     # TRANSFER#
     #####################################################################################
@@ -381,6 +396,18 @@ if __name__ == "__main__":
 
     print('\n Y: {} {} \n'.format(Y['train'].sum(axis = 0), Y['train'].shape))
     # lib.dump_pickle(y_info, output / 'y_info.pickle')
+
+    if args['transfer']['column_mode'] == 'train_to_predict_missing_column':
+
+        print(y_info)
+
+        create_folder('./predict_missing_column/')
+        if args['transfer']['stage'] == 'pretrain':
+            torch.save(y_info, f"./predict_missing_column/y_info_predicted_column_using_upstream_mimic_{args['seed']}_{args['transfer']['pretrain_proportion']}.pt")
+        elif args['transfer']['stage'] == 'downstream':
+            torch.save(y_info,
+                       f"./predict_missing_column/y_info_predicted_column_using_downstream_mimic_{args['seed']}_{args['transfer']['downstream_samples_per_class']}_{args['transfer']['pretrain_proportion']}.pt")
+
     X = tuple(None if x is None else lib.to_tensors(x) for x in X)
     Y = lib.to_tensors(Y)
 
@@ -426,6 +453,64 @@ if __name__ == "__main__":
         d_out=D.info['n_classes'] if D.is_multiclass or D.is_binclass else 1, #multilabel in case of pretraining binclass
         **args['model'],
     ).to(device)
+
+    ## Arpit - Predict the missing column for the dataset
+    ## should save both for upstream and downstream
+    ## args['transfer']['checkpoint_path'] should have the model which predicts the missing column
+
+    if args['transfer']['column_mode'] == 'predict_missing_column':
+
+        print(args['transfer']['checkpoint_path'])
+
+        column_pred_checkpoint = torch.load(args['transfer']['checkpoint_path'])
+        pretrained_feature_extractor_dict = {k: v for k, v in column_pred_checkpoint['model'].items() if
+                                             'head' not in k}
+        missing_keys, unexpected_keys = model.load_state_dict(pretrained_feature_extractor_dict, strict=False)
+        print('\n Loaded \n Missing keys:{}\n Unexpected keys:{}'.format(missing_keys, unexpected_keys))
+        model.load_state_dict(column_pred_checkpoint['model'])
+        model = model.eval()
+
+        for part in lib.PARTS:
+            predictions = None
+            print(D.size(part))
+
+            for batch_idx in lib.IndexLoader(D.size(part), 256, False, device):
+                X_num_batch = None if X_num is None else X_num[part][batch_idx].float()
+                X_cat_batch = None if X_cat is None else X_cat[part][batch_idx]
+
+                model_output = model(X_num_batch, X_cat_batch).detach().cpu()
+                if predictions is None:
+                    predictions = model_output
+                else:
+                    predictions = torch.cat([predictions, model_output], dim=0)
+                # since it is regression saving the output as it is.
+
+            create_folder('./predict_missing_column/')
+            y_imp = Y[part]
+
+            print(torch.sqrt( torch.mean((y_imp - predictions)**2) ))
+
+            # what is it predicted on is stage
+            if args['transfer']['stage'] == 'pretrain':
+
+                y_info = torch.load(f"./predict_missing_column/y_info_predicted_column_using_downstream_mimic_{args['seed']}_{args['transfer']['downstream_samples_per_class']}_{args['transfer']['pretrain_proportion']}.pt")
+                predictions = predictions * y_info['std'] + y_info['mean']
+
+                print(y_info)
+
+
+                torch.save(predictions,
+                           f"./predict_missing_column/predicted_column_using_downstream_on_upstream_{part}_mimic_{args['seed']}_{args['transfer']['downstream_samples_per_class']}_{args['transfer']['pretrain_proportion']}.pt")
+            elif args['transfer']['stage'] == 'downstream':
+
+                y_info = torch.load(f"./predict_missing_column/y_info_predicted_column_using_upstream_mimic_{args['seed']}_{args['transfer']['pretrain_proportion']}.pt")
+                predictions = predictions * y_info['std'] + y_info['mean']
+
+                print(y_info)
+
+                torch.save(predictions,
+                           f"./predict_missing_column/predicted_column_using_upstream_on_downstream_{part}_mimic_{args['seed']}_{args['transfer']['downstream_samples_per_class']}_{args['transfer']['pretrain_proportion']}.pt")
+        exit()
 
     #####################################################################################
     #TRANSFER#
@@ -675,4 +760,5 @@ if __name__ == "__main__":
     print('Done!')
 
     if 'downstream' in args['transfer']['stage']:
-        os.remove(checkpoint_path)
+        if args['transfer']['column_mode'] != 'train_to_predict_missing_column':
+            os.remove(checkpoint_path)

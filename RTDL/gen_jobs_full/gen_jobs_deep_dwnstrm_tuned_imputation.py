@@ -4,10 +4,10 @@ import os
 
 # Defining parameters
 seeds = 5
-models = ['ft_transformer', 'resnet']#, 'mlp', 'tab_transformer']
+models = ['ft_transformer']#, 'resnet']#, 'mlp', 'tab_transformer']
 dset_ids = ['mimic']
 #could subsample targets, probably don't need all for imputation experiments, will share good targets a bit later
-downstream_targets = [0,1,2,3,4,5,6,7,8,9,10,11]
+downstream_targets = [0,2,8]
 
 #create output dir for imputation experiments
 out_dir = f"output_mimic_imputation/deep_dwnstrm_tuned_imputation"
@@ -15,13 +15,13 @@ sample_nums = [2, 5, 10, 50, 100]
 os.makedirs(out_dir, exist_ok=True)
 
 #Adjust the time for cml jobs if needed
-time = 3
+time = 8
 global_launch_str = "\n"
 for model in models:
     for downstream_target in downstream_targets:
         for dset_id in dset_ids:
             #path to optuned configs, double check that this is where optuned configs are stored
-            optuna_config_path = f"optuning_configs/deep/optuning_{dset_id}_{model}_{downstream_target}/best.toml"
+            optuna_config_path = f"optuning_configs/optuning_{dset_id}_{model}_{downstream_target}/best.toml"
             optuna_args = toml.load(optuna_config_path)
 
             # load data args
@@ -40,11 +40,57 @@ for model in models:
                              "model": model_args.copy(),
                              "training": training_args.copy(),
                              "transfer": transfer_args.copy()}
+                ### This is upstream with a missing column
+                toml_dict['transfer']['column_mode'] = 'remove_column'
+
                 #save config in the output directory
-                with open(os.path.join(out_dir, f"{dset_id}{downstream_target}_supervised_pretraining_{model}_seed{seed}.toml"), "w") as fh:
+                with open(os.path.join(out_dir, f"{dset_id}{downstream_target}_supervised_pretraining_with_missing_column_{model}_seed{seed}.toml"), "w") as fh:
                     toml.dump(toml_dict, fh)
                 #add the line to run this config to the launch string which we will dump into a .sh file later
-                launch_str = f"python -W ignore bin/{model}.py {out_dir}/{dset_id}{downstream_target}_supervised_pretraining_{model}_seed{seed}.toml -f \n"
+                launch_str = f"python -W ignore bin/{model}.py {out_dir}/{dset_id}{downstream_target}_supervised_pretraining_with_missing_column_{model}_seed{seed}.toml -f \n"
+
+
+
+
+
+                # upstream + train_to_predict_missing_column used in second type of imputation
+
+                toml_dict = {"seed": seed,
+                             "data": data_args.copy(),
+                             "model": model_args.copy(),
+                             "training": training_args.copy(),
+                             "transfer": transfer_args.copy()}
+
+                toml_dict["transfer"]["checkpoint_path"] = None
+                toml_dict['transfer']['column_mode'] = 'train_to_predict_missing_column'
+                toml_dict['data']['task'] = 'regression'
+                toml_dict['data']['y_policy'] = 'mean_std'
+
+                with open(os.path.join(out_dir,
+                                       f"{dset_id}{downstream_target}_upstream_train_to_predict_missing_column_{model}_seed{seed}.toml"),
+                          "w") as fh:
+                    toml.dump(toml_dict, fh)
+                # add the line to run this config to the launch string which we will dump into a .sh file later
+                launch_str = launch_str + f"python -W ignore bin/{model}.py {out_dir}/{dset_id}{downstream_target}_upstream_train_to_predict_missing_column_{model}_seed{seed}.toml -f \n"
+
+
+
+                # normal upstreme training. Used in second type of imputation
+                toml_dict = {"seed": seed,
+                             "data": data_args.copy(),
+                             "model": model_args.copy(),
+                             "training": training_args.copy(),
+                             "transfer": transfer_args.copy()}
+
+                toml_dict["transfer"]["column_mode"] = "None"
+                # save config in the output directory
+                with open(os.path.join(out_dir,
+                                       f"{dset_id}{downstream_target}_supervised_pretraining_with_all_column_{model}_seed{seed}.toml"),
+                          "w") as fh:
+                    toml.dump(toml_dict, fh)
+                # add the line to run this config to the launch string which we will dump into a .sh file later
+                launch_str = launch_str + f"python -W ignore bin/{model}.py {out_dir}/{dset_id}{downstream_target}_supervised_pretraining_with_all_column_{model}_seed{seed}.toml -f \n"
+
 
 
                 for sample_num in sample_nums:
@@ -153,6 +199,15 @@ for model in models:
                     # downstream finetune whole model with linear head from supervised pretraining:
                     #this is the default setup, where all features are available
                     #might need to add an argument about that
+
+                    #sample_nums = [2, 5, 10, 50, 100]
+                    if sample_num in [2, 5]:
+                        imputation_epoch = 30
+                    elif sample_num in [10]:
+                        imputation_epoch = 60
+                    elif sample_num in [50, 100]:
+                        imputation_epoch = 75
+
                     toml_dict = {"seed": seed,
                                  "data": data_args.copy(),
                                  "model": model_args.copy(),
@@ -161,7 +216,7 @@ for model in models:
                     toml_dict["training"]["lr"] = 1e-4 / 2
                     toml_dict["training"]["n_epochs"] = 200
                     toml_dict["training"]["patience"] = 1e5
-                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir,  f"{dset_id}{downstream_target}_supervised_pretraining_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir,  f"{dset_id}{downstream_target}_supervised_pretraining_with_missing_column_{model}_seed{seed}/checkpoint.pt")
                     toml_dict["transfer"]["downstream_samples_per_class"] = sample_num
                     toml_dict["transfer"]["epochs_warm_up_head"] = 5
                     toml_dict["transfer"]["freeze_feature_extractor"] = False
@@ -170,11 +225,194 @@ for model in models:
                     toml_dict["transfer"]["load_checkpoint"] = True
                     toml_dict["transfer"]["stage"] = "downstream"
                     toml_dict["transfer"]["use_mlp_head"] = False
+                    toml_dict['transfer']['column_mode'] = 'remove_column'
+
                     #save config
-                    with open(os.path.join(out_dir, f"{dset_id}{downstream_target}_downstream_{sample_num}samples_linear_head_tuned_full_from_supervised_pretrain_{model}_seed{seed}.toml"), "w") as fh:
+                    with open(os.path.join(out_dir, f"{dset_id}{downstream_target}_downstream_{sample_num}samples_linear_head_tuned_full_from_supervised_pretrain_with_missing_column_{model}_seed{seed}.toml"), "w") as fh:
                         toml.dump(toml_dict, fh)
                     # add the line to run this config to the launch string which we will dump into a .sh file later
-                    launch_str = launch_str + f"python -W ignore bin/{model}.py {out_dir}/{dset_id}{downstream_target}_downstream_{sample_num}samples_linear_head_tuned_full_from_supervised_pretrain_{model}_seed{seed}.toml -f \n"
+                    launch_str = launch_str + f"python -W ignore bin/{model}.py {out_dir}/{dset_id}{downstream_target}_downstream_{sample_num}samples_linear_head_tuned_full_from_supervised_pretrain_with_missing_column_{model}_seed{seed}.toml -f \n"
+
+
+
+
+                    # downstream + train_to_predict_missing_column
+                    toml_dict = {"seed": seed,
+                                 "data": data_args.copy(),
+                                 "model": model_args.copy(),
+                                 "training": training_args.copy(),
+                                 "transfer": transfer_args.copy()}
+                    toml_dict["training"]["lr"] = 1e-4 / 2
+                    toml_dict["training"]["n_epochs"] = imputation_epoch
+                    toml_dict["training"]["patience"] = 1e5
+
+                    toml_dict["transfer"]["downstream_samples_per_class"] = sample_num
+                    toml_dict["transfer"]["epochs_warm_up_head"] = 5
+                    toml_dict["transfer"]["freeze_feature_extractor"] = False
+                    toml_dict["transfer"]["head_lr"] = 1e-4
+                    toml_dict["transfer"]["layers_to_fine_tune"] = []
+                    toml_dict["transfer"]["load_checkpoint"] = True
+                    toml_dict["transfer"]["stage"] = "downstream"
+                    toml_dict["transfer"]["use_mlp_head"] = False
+
+
+                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir,  f"{dset_id}{downstream_target}_supervised_pretraining_with_missing_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict['transfer']['column_mode'] = 'train_to_predict_missing_column'
+                    toml_dict['data']['task'] = 'regression'
+                    toml_dict['data']['y_policy'] = 'mean_std'
+
+
+                    with open(os.path.join(out_dir, f"{dset_id}{downstream_target}_downstream_{sample_num}samples_train_to_predict_missing_column_{model}_seed{seed}.toml"), "w") as fh:
+                        toml.dump(toml_dict, fh)
+                    # add the line to run this config to the launch string which we will dump into a .sh file later
+                    launch_str = launch_str + f"python -W ignore bin/{model}.py {out_dir}/{dset_id}{downstream_target}_downstream_{sample_num}samples_train_to_predict_missing_column_{model}_seed{seed}.toml -f \n"
+
+
+                    # upstream + predict_missing_column
+                    toml_dict = {"seed": seed,
+                                 "data": data_args.copy(),
+                                 "model": model_args.copy(),
+                                 "training": training_args.copy(),
+                                 "transfer": transfer_args.copy()}
+
+                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir, f"{dset_id}{downstream_target}_downstream_{sample_num}samples_train_to_predict_missing_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict['transfer']['column_mode'] = 'predict_missing_column'
+                    toml_dict['data']['task'] = 'regression'
+                    toml_dict['data']['y_policy'] = 'mean_std'
+
+                    ## added this to have the info that what is the number of downstream samples being used for imputation stuff
+                    toml_dict["transfer"]["downstream_samples_per_class"] = sample_num
+
+                    with open(os.path.join(out_dir,
+                                           f"{dset_id}{downstream_target}_upstream_{sample_num}samples_predict_missing_column_{model}_seed{seed}.toml"),
+                              "w") as fh:
+                        toml.dump(toml_dict, fh)
+                    # add the line to run this config to the launch string which we will dump into a .sh file later
+                    launch_str = launch_str + f"python -W ignore bin/{model}.py {out_dir}/{dset_id}{downstream_target}_upstream_{sample_num}samples_predict_missing_column_{model}_seed{seed}.toml -f \n"
+
+
+
+                    # upstream + train_with_missing_column
+                    toml_dict = {"seed": seed,
+                                 "data": data_args.copy(),
+                                 "model": model_args.copy(),
+                                 "training": training_args.copy(),
+                                 "transfer": transfer_args.copy()}
+
+                    toml_dict['transfer']['column_mode'] = 'train_with_imputed_column'
+
+                    ## added this to have the info that what is the number of downstream samples being used for imputation stuff
+                    toml_dict["transfer"]["downstream_samples_per_class"] = sample_num
+
+                    with open(os.path.join(out_dir,
+                                           f"{dset_id}{downstream_target}_upstream_{sample_num}samples_train_with_imputed_column_{model}_seed{seed}.toml"),
+                              "w") as fh:
+                        toml.dump(toml_dict, fh)
+                    # add the line to run this config to the launch string which we will dump into a .sh file later
+                    launch_str = launch_str + f"python -W ignore bin/{model}.py {out_dir}/{dset_id}{downstream_target}_upstream_{sample_num}samples_train_with_imputed_column_{model}_seed{seed}.toml -f \n"
+
+
+
+                    #downstream + None + transfer just use the above upstream check point
+                    toml_dict = {"seed": seed,
+                                 "data": data_args.copy(),
+                                 "model": model_args.copy(),
+                                 "training": training_args.copy(),
+                                 "transfer": transfer_args.copy()}
+                    toml_dict["training"]["lr"] = 1e-4 / 2
+                    toml_dict["training"]["n_epochs"] = 200
+                    toml_dict["training"]["patience"] = 1e5
+                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir,
+                                                                            f"{dset_id}{downstream_target}_upstream_{sample_num}samples_train_with_imputed_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict["transfer"]["downstream_samples_per_class"] = sample_num
+                    toml_dict["transfer"]["epochs_warm_up_head"] = 5
+                    toml_dict["transfer"]["freeze_feature_extractor"] = False
+                    toml_dict["transfer"]["head_lr"] = 1e-4
+                    toml_dict["transfer"]["layers_to_fine_tune"] = []
+                    toml_dict["transfer"]["load_checkpoint"] = True
+                    toml_dict["transfer"]["stage"] = "downstream"
+                    toml_dict["transfer"]["use_mlp_head"] = False
+                    toml_dict["transfer"]["column_mode"] = "None"
+
+                    # save config
+                    with open(os.path.join(out_dir,
+                                           f"{dset_id}{downstream_target}_downstream_{sample_num}samples_linear_head_tuned_full_from_supervised_pretrain_with_imputed_column_{model}_seed{seed}.toml"),
+                              "w") as fh:
+                        toml.dump(toml_dict, fh)
+                    # add the line to run this config to the launch string which we will dump into a .sh file later
+                    launch_str = launch_str + f"python -W ignore bin/{model}.py {out_dir}/{dset_id}{downstream_target}_downstream_{sample_num}samples_linear_head_tuned_full_from_supervised_pretrain_with_imputed_column_{model}_seed{seed}.toml -f \n"
+
+
+
+                    ######## second type of imputation #########
+
+
+                    # downstream + predict_missing_column
+
+                    toml_dict = {"seed": seed,
+                                 "data": data_args.copy(),
+                                 "model": model_args.copy(),
+                                 "training": training_args.copy(),
+                                 "transfer": transfer_args.copy()}
+
+                    toml_dict["training"]["lr"] = 1e-4 / 2
+                    toml_dict["training"]["n_epochs"] = 200
+                    toml_dict["training"]["patience"] = 1e5
+                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir,
+                                           f"{dset_id}{downstream_target}_upstream_train_to_predict_missing_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict["transfer"]["downstream_samples_per_class"] = sample_num
+                    toml_dict["transfer"]["epochs_warm_up_head"] = 5
+                    toml_dict["transfer"]["freeze_feature_extractor"] = False
+                    toml_dict["transfer"]["head_lr"] = 1e-4
+                    toml_dict["transfer"]["layers_to_fine_tune"] = []
+                    toml_dict["transfer"]["load_checkpoint"] = True
+                    toml_dict["transfer"]["stage"] = "downstream"
+                    toml_dict["transfer"]["use_mlp_head"] = False
+                    toml_dict['transfer']['column_mode'] = 'predict_missing_column'
+                    toml_dict['data']['task'] = 'regression'
+                    toml_dict['data']['y_policy'] = 'mean_std'
+
+
+                    with open(os.path.join(out_dir,
+                                           f"{dset_id}{downstream_target}_downstream_{sample_num}samples_predict_missing_column_{model}_seed{seed}.toml"),
+                              "w") as fh:
+                        toml.dump(toml_dict, fh)
+                    # add the line to run this config to the launch string which we will dump into a .sh file later
+                    launch_str = launch_str + f"python -W ignore bin/{model}.py {out_dir}/{dset_id}{downstream_target}_downstream_{sample_num}samples_predict_missing_column_{model}_seed{seed}.toml -f \n"
+
+                    #downstream + train_with_missing_column + transfer
+
+                    toml_dict = {"seed": seed,
+                                 "data": data_args.copy(),
+                                 "model": model_args.copy(),
+                                 "training": training_args.copy(),
+                                 "transfer": transfer_args.copy()}
+
+                    toml_dict["training"]["lr"] = 1e-4 / 2
+                    toml_dict["training"]["n_epochs"] = 200
+                    toml_dict["training"]["patience"] = 1e5
+                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir,
+                                           f"{dset_id}{downstream_target}_supervised_pretraining_with_all_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict["transfer"]["downstream_samples_per_class"] = sample_num
+                    toml_dict["transfer"]["epochs_warm_up_head"] = 5
+                    toml_dict["transfer"]["freeze_feature_extractor"] = False
+                    toml_dict["transfer"]["head_lr"] = 1e-4
+                    toml_dict["transfer"]["layers_to_fine_tune"] = []
+                    toml_dict["transfer"]["load_checkpoint"] = True
+                    toml_dict["transfer"]["stage"] = "downstream"
+                    toml_dict["transfer"]["use_mlp_head"] = False
+                    toml_dict['transfer']['column_mode'] = 'train_with_imputed_column'
+                    toml_dict['transfer']['downstream_target'] = downstream_target
+
+
+                    with open(os.path.join(out_dir,
+                                           f"{dset_id}{downstream_target}_downstream_{sample_num}samples_train_with_imputed_column_{model}_seed{seed}.toml"),
+                              "w") as fh:
+                        toml.dump(toml_dict, fh)
+                    # add the line to run this config to the launch string which we will dump into a .sh file later
+                    launch_str = launch_str + f"python -W ignore bin/{model}.py {out_dir}/{dset_id}{downstream_target}_downstream_{sample_num}samples_train_with_imputed_column_{model}_seed{seed}.toml -f \n"
+
+
 
                     #TODO: add a setup with missing upstream feature
                     #TODO: add a setup with imputed upstream feature
