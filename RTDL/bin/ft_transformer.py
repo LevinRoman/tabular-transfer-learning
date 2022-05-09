@@ -497,6 +497,7 @@ if __name__ == "__main__":
                 predictions = predictions * y_info['std'] + y_info['mean']
 
                 print(y_info)
+                print(len(predictions))
 
 
                 torch.save(predictions,
@@ -507,6 +508,8 @@ if __name__ == "__main__":
                 predictions = predictions * y_info['std'] + y_info['mean']
 
                 print(y_info)
+                print('downstream')
+                print(len(predictions))
 
                 torch.save(predictions,
                            f"./predict_missing_column/predicted_column_using_upstream_on_downstream_{part}_mimic_{args['seed']}_{args['transfer']['downstream_samples_per_class']}_{args['transfer']['pretrain_proportion']}.pt")

@@ -393,43 +393,12 @@ def data_prep_transfer_mimic(ds_id, seed, task, stage='pretrain', pretrain_propo
     else:
         raise ValueError('Stage is incorrect!')
 
-    # Arpit - handling the drop of the column
-    to_drop_index = 0  # the index of the categorical column we are removing
-    to_drop = numerical_columns[to_drop_index]
 
-    if column_mode == 'remove_column':
-        X_train = X_train.drop(columns=[to_drop])
-        X_val = X_val.drop(columns=[to_drop])
-        X_test = X_test.drop(columns=[to_drop])
-
-        print("All Cols")
-        print(numerical_columns)
-        print("To drop")
-        print(to_drop)
-
-        numerical_columns.remove(to_drop)
-
-    # Arpit - Also since we are dropping the numerical column, just train to predict a value.
-    # Arpit - Before I made a lot of changes to handle categorical coloumn being dropped.
-
-    elif column_mode == 'predict_missing_column' or column_mode == 'train_to_predict_missing_column':
-        y_train = X_train[to_drop]
-        y_val = X_val[to_drop]
-        y_test = X_test[to_drop]
-
-        X_train = X_train.drop(columns=[to_drop])
-        X_val = X_val.drop(columns=[to_drop])
-        X_test = X_test.drop(columns=[to_drop])
-
-        print("All Cols")
-        print(numerical_columns)
-        print("To drop")
-        print(to_drop)
-        numerical_columns.remove(to_drop)
 
 
     X_train_full = X_train.copy()
     y_train_full = y_train.copy()
+
     if ('downstream' in stage) or pretrain_subsample:
         #switching to downstream_samples_per_class
         print('Total num classes:', len(set(y_train)))
@@ -445,6 +414,40 @@ def data_prep_transfer_mimic(ds_id, seed, task, stage='pretrain', pretrain_propo
             sample_num_classes = len(set(y_train))
             print('New sample num classes:', len(set(y_train)))
         assert total_num_of_classes == sample_num_classes
+
+    # Arpit - handling the drop of the column
+    to_drop_index = 0  # the index of the categorical column we are removing
+    to_drop = numerical_columns[to_drop_index]
+
+    if column_mode == 'remove_column':
+        X_train = X_train.drop(columns=[to_drop])
+        X_val = X_val.drop(columns=[to_drop])
+        X_test = X_test.drop(columns=[to_drop])
+
+        # print("All Cols")
+        # print(numerical_columns)
+        # print("To drop")
+        # print(to_drop)
+
+        numerical_columns.remove(to_drop)
+
+    # Arpit - Also since we are dropping the numerical column, just train to predict a value.
+    # Arpit - Before I made a lot of changes to handle categorical coloumn being dropped.
+
+    elif column_mode == 'predict_missing_column' or column_mode == 'train_to_predict_missing_column':
+        y_train = X_train[to_drop]
+        y_val = X_val[to_drop]
+        y_test = X_test[to_drop]
+
+        X_train = X_train.drop(columns=[to_drop])
+        X_val = X_val.drop(columns=[to_drop])
+        X_test = X_test.drop(columns=[to_drop])
+
+        # print("All Cols")
+        # print(numerical_columns)
+        # print("To drop")
+        # print(to_drop)
+        numerical_columns.remove(to_drop)
 
     if column_mode == 'train_to_predict_missing_column':
         # drop the nas
@@ -476,6 +479,11 @@ def data_prep_transfer_mimic(ds_id, seed, task, stage='pretrain', pretrain_propo
     # Arpit -
     # when training on the missing upstream feature, we have trained on the downstream task for different samples
     # but when there is a missing upstream feature, we have all the data and nothing for downstream samples
+
+    print(stage)
+    print(downstream_samples_per_class)
+    print('Check', len(X_num_train[:, to_drop_index]))
+
     if column_mode == 'train_with_imputed_column':
         if 'downstream' in stage:
             overwrite = torch.load(
@@ -483,12 +491,10 @@ def data_prep_transfer_mimic(ds_id, seed, task, stage='pretrain', pretrain_propo
 
             print("Sanity_rmse")
             print(np.sqrt(np.mean( (X_num_train[:, to_drop_index] - overwrite)**2)) )
-
             X_num_train[:, to_drop_index] = overwrite
 
-            overwrite = torch.load(
-                f"./predict_missing_column/predicted_column_using_upstream_on_downstream_val_mimic_{input_seed}_{downstream_samples_per_class}_{pretrain_proportion}.pt").int().cpu().numpy()
-            X_num_val[:, to_drop_index] = overwrite
+            ### Not imputing the val in the downstream task
+            ### Because the xval is same as xtrain in the end of the code.
 
             overwrite = torch.load(
                 f"./predict_missing_column/predicted_column_using_upstream_on_downstream_test_mimic_{input_seed}_{downstream_samples_per_class}_{pretrain_proportion}.pt").int().cpu().numpy()
