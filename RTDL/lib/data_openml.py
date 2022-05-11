@@ -416,8 +416,32 @@ def data_prep_transfer_mimic(ds_id, seed, task, stage='pretrain', pretrain_propo
         assert total_num_of_classes == sample_num_classes
 
     # Arpit - handling the drop of the column
-    to_drop_index = 0  # the index of the categorical column we are removing
-    to_drop = numerical_columns[to_drop_index]
+    columns_to_drop = pd.Series(
+        ['age', 'gender', 'first_226512', 'avg_220045', 'avg_220179', 'avg_220180', 'avg_220210', 'avg_220277', 'avg_220739', 'avg_223900', 'avg_223901', 'avg_224054', 'avg_224055', 'avg_224056', 'avg_224057', 'avg_224058', 'avg_224059', 'avg_226253', 'avg_50868', 'avg_50882', 'avg_50902', 'avg_50912', 'avg_50931', 'avg_50960', 'avg_50971', 'avg_50983', 'avg_51006', 'avg_51221', 'avg_51222', 'avg_51248', 'avg_51249', 'avg_51250', 'avg_51265', 'avg_51277', 'avg_51279', 'avg_51301'])
+    to_drop = columns_to_drop.sample(n=1, random_state=input_seed).values[0]
+    to_drop_index = numerical_columns.index(to_drop)
+
+    if 'avg' in to_drop:
+        the_col_name = to_drop.split('_')[1]
+        min_col = 'min_' + the_col_name
+        max_col = 'max_' + the_col_name
+
+        #if column_mode == 'remove_column' or column_mode == 'predict_missing_column' or column_mode == 'train_to_predict_missing_column' or column_mode =='train_with_imputed_column':
+        X_train = X_train.drop(columns=[min_col, max_col])
+        X_val = X_val.drop(columns=[min_col, max_col])
+        X_test = X_test.drop(columns=[min_col, max_col])
+
+        numerical_columns.remove(min_col)
+        numerical_columns.remove(max_col)
+
+        to_drop_index = numerical_columns.index(to_drop)
+
+
+    print(f"The dropped column is {to_drop} with index {to_drop_index}")
+    print(numerical_columns)
+
+    # to_drop_index = 0  # the index of the categorical column we are removing
+    # to_drop = numerical_columns[to_drop_index]
 
     if column_mode == 'remove_column':
         X_train = X_train.drop(columns=[to_drop])

@@ -18,7 +18,7 @@ ArrayDict = ty.Dict[str, np.ndarray]
 
 
 def normalize(
-    X: ArrayDict, normalization: str, seed: int, noise: float = 1e-3
+    X: ArrayDict, normalization: str, seed: int, noise: float = 1e-3, quantiler_path = None, stage = None
 ) -> ArrayDict:
     X_train = X['train'].copy()
     if normalization == 'standard':
@@ -39,6 +39,14 @@ def normalize(
     else:
         util.raise_unknown('normalization', normalization)
     normalizer.fit(X_train)
+    if quantiler_path is not None:
+        assert stage is not None
+        if 'pretrain' in stage:
+            pickle.dump(normalizer, open(quantiler_path, 'wb'))
+            print('Quantiler saved')
+        if 'downstream' in stage:
+            normalizer = pickle.load(open(quantiler_path, 'rb'))
+            print('Quantiler loaded')
     return {k: normalizer.transform(v) for k, v in X.items()}  # type: ignore[code]
 
 
@@ -87,7 +95,9 @@ class Dataset:
         cat_policy: str,
         cat_min_frequency: float = 0.0,
         seed: int,
-        full_cat_data_for_encoder = None
+        full_cat_data_for_encoder = None,
+        quantiler_path = None,
+        stage = None
     ) -> ty.Union[ArrayDict, ty.Tuple[ArrayDict, ArrayDict]]:
 
         print('Building Dataset')
@@ -107,7 +117,7 @@ class Dataset:
                     v[num_nan_indices] = np.take(num_new_values, num_nan_indices[1])
             # Applying normalization
             if normalization:
-                N = normalize(N, normalization, seed)
+                N = normalize(N, normalization, seed, quantiler_path = quantiler_path, stage = stage)
 
         else:
             N = None

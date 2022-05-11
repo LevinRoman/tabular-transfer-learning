@@ -7,7 +7,7 @@ seeds = 5
 models = ['ft_transformer']#, 'resnet']#, 'mlp', 'tab_transformer']
 dset_ids = ['mimic']
 #could subsample targets, probably don't need all for imputation experiments, will share good targets a bit later
-downstream_targets = [0,2,8]
+downstream_targets = [2,4,8,9]
 
 #create output dir for imputation experiments
 out_dir = f"output_mimic_imputation/deep_dwnstrm_tuned_imputation"
@@ -42,7 +42,7 @@ for model in models:
                              "transfer": transfer_args.copy()}
                 ### This is upstream with a missing column
                 toml_dict['transfer']['column_mode'] = 'remove_column'
-
+                toml_dict['transfer']['quantiler_path'] = os.path.join(out_dir, f"{dset_id}{downstream_target}_supervised_pretraining_with_missing_column_{model}_seed{seed}/quantiler.pkl")
                 #save config in the output directory
                 with open(os.path.join(out_dir, f"{dset_id}{downstream_target}_supervised_pretraining_with_missing_column_{model}_seed{seed}.toml"), "w") as fh:
                     toml.dump(toml_dict, fh)
@@ -65,6 +65,7 @@ for model in models:
                 toml_dict['transfer']['column_mode'] = 'train_to_predict_missing_column'
                 toml_dict['data']['task'] = 'regression'
                 toml_dict['data']['y_policy'] = 'mean_std'
+                toml_dict['transfer']['quantiler_path'] = os.path.join(out_dir, f"{dset_id}{downstream_target}_upstream_train_to_predict_missing_column_{model}_seed{seed}/quantiler.pkl")
 
                 with open(os.path.join(out_dir,
                                        f"{dset_id}{downstream_target}_upstream_train_to_predict_missing_column_{model}_seed{seed}.toml"),
@@ -83,6 +84,7 @@ for model in models:
                              "transfer": transfer_args.copy()}
 
                 toml_dict["transfer"]["column_mode"] = "None"
+                toml_dict['transfer']['quantiler_path'] = os.path.join(out_dir, f"{dset_id}{downstream_target}_supervised_pretraining_with_all_column_{model}_seed{seed}/quantiler.pkl")
                 # save config in the output directory
                 with open(os.path.join(out_dir,
                                        f"{dset_id}{downstream_target}_supervised_pretraining_with_all_column_{model}_seed{seed}.toml"),
@@ -216,7 +218,8 @@ for model in models:
                     toml_dict["training"]["lr"] = 1e-4 / 2
                     toml_dict["training"]["n_epochs"] = 200
                     toml_dict["training"]["patience"] = 1e5
-                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir,  f"{dset_id}{downstream_target}_supervised_pretraining_with_missing_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir, f"{dset_id}{downstream_target}_supervised_pretraining_with_missing_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict['transfer']['quantiler_path'] = os.path.join(out_dir, f"{dset_id}{downstream_target}_supervised_pretraining_with_missing_column_{model}_seed{seed}/quantiler.pkl")
                     toml_dict["transfer"]["downstream_samples_per_class"] = sample_num
                     toml_dict["transfer"]["epochs_warm_up_head"] = 5
                     toml_dict["transfer"]["freeze_feature_extractor"] = False
@@ -257,6 +260,7 @@ for model in models:
 
 
                     toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir,  f"{dset_id}{downstream_target}_supervised_pretraining_with_missing_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict['transfer']['quantiler_path'] = os.path.join(out_dir,  f"{dset_id}{downstream_target}_supervised_pretraining_with_missing_column_{model}_seed{seed}/quantiler.pkl")
                     toml_dict['transfer']['column_mode'] = 'train_to_predict_missing_column'
                     toml_dict['data']['task'] = 'regression'
                     toml_dict['data']['y_policy'] = 'mean_std'
@@ -276,6 +280,7 @@ for model in models:
                                  "transfer": transfer_args.copy()}
 
                     toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir, f"{dset_id}{downstream_target}_downstream_{sample_num}samples_train_to_predict_missing_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict['transfer']['quantiler_path'] = os.path.join(out_dir, f"{dset_id}{downstream_target}_downstream_{sample_num}samples_train_to_predict_missing_column_{model}_seed{seed}/quantiler.pkl")
                     toml_dict['transfer']['column_mode'] = 'predict_missing_column'
                     toml_dict['data']['task'] = 'regression'
                     toml_dict['data']['y_policy'] = 'mean_std'
@@ -303,6 +308,7 @@ for model in models:
 
                     ## added this to have the info that what is the number of downstream samples being used for imputation stuff
                     toml_dict["transfer"]["downstream_samples_per_class"] = sample_num
+                    toml_dict['transfer']['quantiler_path'] = os.path.join(out_dir, f"{dset_id}{downstream_target}_upstream_{sample_num}samples_train_with_imputed_column_{model}_seed{seed}/quantiler.pkl")
 
                     with open(os.path.join(out_dir,
                                            f"{dset_id}{downstream_target}_upstream_{sample_num}samples_train_with_imputed_column_{model}_seed{seed}.toml"),
@@ -322,8 +328,8 @@ for model in models:
                     toml_dict["training"]["lr"] = 1e-4 / 2
                     toml_dict["training"]["n_epochs"] = 200
                     toml_dict["training"]["patience"] = 1e5
-                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir,
-                                                                            f"{dset_id}{downstream_target}_upstream_{sample_num}samples_train_with_imputed_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir, f"{dset_id}{downstream_target}_upstream_{sample_num}samples_train_with_imputed_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict['transfer']['quantiler_path'] = os.path.join(out_dir, f"{dset_id}{downstream_target}_upstream_{sample_num}samples_train_with_imputed_column_{model}_seed{seed}/quantiler.pkl")
                     toml_dict["transfer"]["downstream_samples_per_class"] = sample_num
                     toml_dict["transfer"]["epochs_warm_up_head"] = 5
                     toml_dict["transfer"]["freeze_feature_extractor"] = False
@@ -358,8 +364,8 @@ for model in models:
                     toml_dict["training"]["lr"] = 1e-4 / 2
                     toml_dict["training"]["n_epochs"] = 200
                     toml_dict["training"]["patience"] = 1e5
-                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir,
-                                           f"{dset_id}{downstream_target}_upstream_train_to_predict_missing_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir, f"{dset_id}{downstream_target}_upstream_train_to_predict_missing_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict['transfer']['quantiler_path'] = os.path.join(out_dir, f"{dset_id}{downstream_target}_upstream_train_to_predict_missing_column_{model}_seed{seed}/quantiler.pkl")
                     toml_dict["transfer"]["downstream_samples_per_class"] = sample_num
                     toml_dict["transfer"]["epochs_warm_up_head"] = 5
                     toml_dict["transfer"]["freeze_feature_extractor"] = False
@@ -391,8 +397,8 @@ for model in models:
                     toml_dict["training"]["lr"] = 1e-4 / 2
                     toml_dict["training"]["n_epochs"] = 200
                     toml_dict["training"]["patience"] = 1e5
-                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir,
-                                           f"{dset_id}{downstream_target}_supervised_pretraining_with_all_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict["transfer"]["checkpoint_path"] = os.path.join(out_dir, f"{dset_id}{downstream_target}_supervised_pretraining_with_all_column_{model}_seed{seed}/checkpoint.pt")
+                    toml_dict['transfer']['quantiler_path'] = os.path.join(out_dir, f"{dset_id}{downstream_target}_supervised_pretraining_with_all_column_{model}_seed{seed}/quantiler.pkl")
                     toml_dict["transfer"]["downstream_samples_per_class"] = sample_num
                     toml_dict["transfer"]["epochs_warm_up_head"] = 5
                     toml_dict["transfer"]["freeze_feature_extractor"] = False
