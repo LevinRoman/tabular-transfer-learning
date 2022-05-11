@@ -385,7 +385,9 @@ if __name__ == "__main__":
         cat_policy=args['data'].get('cat_policy', 'indices'),
         cat_min_frequency=args['data'].get('cat_min_frequency', 0.0),
         seed=args['seed'],
-        full_cat_data_for_encoder = full_cat_data_for_encoder
+        full_cat_data_for_encoder = full_cat_data_for_encoder,
+        quantiler_path = args['transfer']['quantiler_path'],
+        stage = args['transfer']['stage']
     )
 
     if not isinstance(X, tuple):
