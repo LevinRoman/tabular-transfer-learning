@@ -1,5 +1,5 @@
 # Tabular Transfer Learning
-The official implementation of the paper "Transfer Learning with Deep Tabular Models"
+The official implementation of the paper "Transfer Learning with Deep Tabular Models".
 
 ## Getting Started
 
