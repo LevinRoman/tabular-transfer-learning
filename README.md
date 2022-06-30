@@ -49,7 +49,7 @@ In addition to transfer learning with deep tabular models, this repo allows to t
 We believe in open-source community driven software development. Please open issues and pull requests with any questions or improvements you have.
 
 ## References
-* We borrow tabular network implementation from the [RTDL repo](https://github.com/Yura52/rtdl) and extensively leverage the RTDL repo in general
+* We borrow tabular network implementations from the [RTDL repo](https://github.com/Yura52/rtdl) and extensively leverage the RTDL repo in general
 * [Yeast demo data source](http://mulan.sourceforge.net/datasets-mlc.html)
 * [MetaMIMIC](https://github.com/ModelOriented/metaMIMIC)
 * [MIMIC-IV clinical database](https://physionet.org/content/mimiciv/1.0/)
