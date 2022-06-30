@@ -41,7 +41,7 @@ During training, the best performing model (on held-out validation set) is saved
 
 The results are saved in `outputs/<path_to_exp>/training-<run_id>/stats.json`, the tensorboard data is saved in `outputs/<path_to_exp>/training-<run_id>/tensorboard`.
 
-##Additional Functionality
+## Additional Functionality
 In addition to transfer learning with deep tabular models, this repo allows to train networks from scratch using ` train_net_from_scratch.py` and to optimize their hyperparameters with [Optuna](https://optuna.org) using `optune_from_scratch.py`
 
 ## Contributing
