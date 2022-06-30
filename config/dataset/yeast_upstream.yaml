@@ -1,0 +1,7 @@
+name: yeast_upstream
+source: local
+task: multilabel
+normalization: quantile
+normalizer_path: '../../../data/yeast_upstream/normalizer.pkl'
+stage: 'pretrain'
+y_policy:

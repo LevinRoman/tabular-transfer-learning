@@ -1,0 +1,7 @@
+name: yeast_downstream
+source: local
+task: binclass
+normalization: quantile
+normalizer_path: '../../../data/yeast_upstream/normalizer.pkl'
+stage: 'downstream'
+y_policy:

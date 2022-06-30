@@ -1,0 +1,18 @@
+defaults:
+  - model: mlp
+  - dataset: d_188
+  - hyp: hyp_for_single_net
+  - override hydra/job_logging: custom
+  - _self_
+
+
+hydra:
+  run:
+    dir: ./outputs/${name}/training-${model.name}-${dataset.name}
+  job_logging:
+    handlers:
+      file:
+        filename: train.log
+
+train_log: train_log
+name: from_scratch_default

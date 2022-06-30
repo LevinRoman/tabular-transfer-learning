@@ -1,0 +1,19 @@
+epochs: 200
+lr: 0.0001
+lr_decay: step
+lr_factor: 0.1
+lr_schedule:
+  - 40
+  - 80
+optimizer: adam
+patience: 30
+save_period: -1
+seed: 0
+test_batch_size: 256
+train_batch_size: 256
+use_patience: true
+val_period: 10
+warmup_period: 5
+weight_decay: 2e-4
+momentum: 0.9
+warmup_type: linear

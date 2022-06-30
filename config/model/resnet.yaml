@@ -1,0 +1,10 @@
+name: resnet
+d_embedding: 128
+model_path:
+d: 200
+d_hidden_factor: 3
+n_layers: 5
+activation: relu
+normalization: batchnorm
+hidden_dropout: 0.2
+residual_dropout: 0.2

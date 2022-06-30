@@ -1,0 +1,7 @@
+name: mimic
+stage: downstream
+task: binclass
+normalization: quantile
+downstream_target: 0
+downstream_sample_num: 200
+y_policy:

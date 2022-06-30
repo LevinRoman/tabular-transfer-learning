@@ -1,0 +1,18 @@
+defaults:
+  - model: ft_transformer_pretrain
+  - dataset: yeast_upstream
+  - hyp: hyp_for_transfer
+  - override hydra/job_logging: custom
+  - _self_
+
+
+hydra:
+  run:
+    dir: ./outputs/${name}/${model.name}-${dataset.name}
+  job_logging:
+    handlers:
+      file:
+        filename: train.log
+
+train_log: train_log
+name: transfer-learning-experiment
