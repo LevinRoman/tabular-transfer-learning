@@ -1,5 +1,22 @@
 # Tabular Transfer Learning
-The official implementation of the paper "Transfer Learning with Deep Tabular Models".
+
+This repository contains the official implementation of the paper  
+
+[Transfer Learning with Deep Tabular Models](https://arxiv.org/abs/2206.15306) 
+
+Roman Levin, Valeriia Cherepanova, Avi Schwarzschild, Arpit Bansal, C. Bayan Bruss, Tom Goldstein, Andrew Gordon Wilson, Micah Goldblum.
+
+## Citation
+
+If you find our work useful, please cite 
+```
+@article{levin2022transfer,
+  title={Transfer Learning with Deep Tabular Models},
+  author={Levin, Roman and Cherepanova, Valeriia and Schwarzschild, Avi and Bansal, Arpit and Bruss, C Bayan and Goldstein, Tom and Wilson, Andrew Gordon and Goldblum, Micah},
+  journal={arXiv preprint arXiv:2206.15306},
+  year={2022}
+}
+```
 
 ## Getting Started
 
