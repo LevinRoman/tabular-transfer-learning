@@ -2,7 +2,7 @@
 
 This repository contains the official implementation of the paper  
 
-[Transfer Learning with Deep Tabular Models](https://arxiv.org/abs/2206.15306) 
+[Transfer Learning with Deep Tabular Models](https://arxiv.org/abs/2206.15306), now accepted to ICLR 2023!
 
 Roman Levin, Valeriia Cherepanova, Avi Schwarzschild, Arpit Bansal, C. Bayan Bruss, Tom Goldstein, Andrew Gordon Wilson, Micah Goldblum.
 
